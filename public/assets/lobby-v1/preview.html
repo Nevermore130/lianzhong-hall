@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>大厅分层素材 · 预览</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 12px;
+      background: #c0c0c0;
+      color: #202020;
+      font:
+        12px Tahoma,
+        "SimSun",
+        serif;
+    }
+    h1 {
+      margin: 0 0 12px;
+      padding: 7px;
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: white;
+      font-size: 14px;
+    }
+    p {
+      line-height: 1.8;
+    }
+    .states {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .assets {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    figure {
+      margin: 0;
+      border: 1px solid #808080;
+      border-right-color: white;
+      border-bottom-color: white;
+    }
+    figcaption {
+      padding: 7px;
+      border-top: 1px solid white;
+      background: #d4d4d4;
+      text-align: center;
+    }
+    .stage {
+      display: block;
+      width: 100%;
+      background: #4d678c;
+    }
+    .asset-image {
+      width: 100%;
+      display: block;
+      background: repeating-conic-gradient(#ececec 0% 25%, #fff 0% 50%) 0 0 /
+        16px 16px;
+    }
+    a {
+      color: #000080;
+    }
+    @media (max-width: 700px) {
+      .states,
+      .assets {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+  <h1>大厅分层素材 v1</h1>
+  <p>
+    统一等轴测视角 · 原始透明 PNG / 页面无损 WebP ·
+    下方为素材组合预览，不代表大厅在线玩家。
+  </p>
+  <div class="states" id="states"></div>
+  <p>独立图层（棋盘格仅由此预览页绘制，用于检查透明边缘）：</p>
+  <div class="assets" id="assets"></div>
+  <p>
+    <a href="/">返回游戏大厅</a> · <a href="./manifest.json">查看图层坐标</a>
+  </p>
+  <script type="module">
+    const manifest = await fetch("./manifest.json").then((r) => r.json());
+    const ns = "http://www.w3.org/2000/svg";
+    for (const [label, seats] of [
+      ["空桌", [false, false]],
+      ["远侧入座", [true, false]],
+      ["近侧入座", [false, true]],
+      ["双方入座", [true, true]],
+    ]) {
+      const figure = document.createElement("figure");
+      const svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", manifest.viewBox.join(" "));
+      svg.setAttribute("class", "stage");
+      svg.setAttribute("aria-label", label);
+      for (const layer of manifest.layers) {
+        if (layer.seat !== undefined && !seats[layer.seat]) continue;
+        const image = document.createElementNS(ns, "image");
+        for (const [name, value] of Object.entries({
+          href: layer.file,
+          x: layer.x,
+          y: layer.y,
+          width: layer.size,
+          height: layer.size,
+        }))
+          image.setAttribute(name, String(value));
+        svg.append(image);
+      }
+      const caption = document.createElement("figcaption");
+      caption.textContent = label;
+      figure.append(svg, caption);
+      document.querySelector("#states").append(figure);
+    }
+    for (const layer of manifest.layers) {
+      const figure = document.createElement("figure");
+      const img = document.createElement("img");
+      img.src = layer.file;
+      img.alt = layer.name;
+      img.className = "asset-image";
+      const caption = document.createElement("figcaption");
+      const link = document.createElement("a");
+      link.href = layer.file;
+      link.textContent = layer.file;
+      link.download = layer.file;
+      caption.append(link);
+      figure.append(img, caption);
+      document.querySelector("#assets").append(figure);
+    }
+  </script>
+</html>

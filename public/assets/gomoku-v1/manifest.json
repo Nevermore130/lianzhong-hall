@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "view": "orthographic-top-down",
+  "light": "upper-left",
+  "assets": {
+    "wood": { "file": "board-wood.webp", "width": 880, "height": 880 },
+    "black": {
+      "file": "stone-black.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    "white": {
+      "file": "stone-white.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    "lastMove": { "file": "last-move.svg", "viewBox": [0, 0, 16, 16] }
+  },
+  "stoneDisplay": { "center": [0.5, 0.5], "circularApertureDiameter": 0.84 },
+  "grid": {
+    "renderedBy": "src/components/Board.tsx",
+    "viewBox": [0, 0, 300, 300],
+    "size": 15,
+    "firstIntersection": [10, 10],
+    "step": 20
+  }
+}

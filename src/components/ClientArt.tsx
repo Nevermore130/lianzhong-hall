@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 export function ToolbarIcon({
   kind,
 }: {
@@ -124,7 +126,22 @@ export function ToolbarIcon({
   );
 }
 
-export function PlayerPortrait({ small = false }: { small?: boolean }) {
+export function PlayerPortrait({
+  small = false,
+  avatar = 0,
+}: {
+  small?: boolean;
+  avatar?: number;
+}) {
+  const id = useId();
+  const colors = [
+    ["#b9edff", "#2a80b1", "#154571", "#269aca"],
+    ["#d0edcc", "#578a64", "#284f39", "#64ad67"],
+    ["#e5d4ed", "#8c6599", "#543b69", "#b481c5"],
+    ["#f2d3c0", "#b86856", "#7c3434", "#dc8a61"],
+    ["#f4e7b8", "#a6954f", "#74602f", "#ddb744"],
+    ["#d0dbd7", "#637776", "#343e44", "#739f9b"],
+  ][avatar] ?? ["#b9edff", "#2a80b1", "#154571", "#269aca"];
   return (
     <svg
       className={small ? "player-portrait small" : "player-portrait"}
@@ -132,24 +149,20 @@ export function PlayerPortrait({ small = false }: { small?: boolean }) {
       aria-hidden="true"
     >
       <defs>
-        <linearGradient
-          id={small ? "portraitSmall" : "portraitLarge"}
-          x2="0"
-          y2="1"
-        >
-          <stop stopColor="#b9edff" />
-          <stop offset="1" stopColor="#2a80b1" />
+        <linearGradient id={id} x2="0" y2="1">
+          <stop stopColor={colors[0]} />
+          <stop offset="1" stopColor={colors[1]} />
         </linearGradient>
       </defs>
       <circle
         cx="24"
         cy="24"
         r="23"
-        fill={`url(#${small ? "portraitSmall" : "portraitLarge"})`}
+        fill={`url(#${id})`}
         stroke="#e4faff"
         strokeWidth="2"
       />
-      <path d="M8 45c1-12 8-17 16-17s15 5 16 17" fill="#154571" />
+      <path d="M8 45c1-12 8-17 16-17s15 5 16 17" fill={colors[2]} />
       <path d="m16 30 8 12 8-12" fill="#e8f4f2" />
       <ellipse cx="24" cy="21" rx="11" ry="13" fill="#f3cdac" />
       <path
@@ -158,13 +171,13 @@ export function PlayerPortrait({ small = false }: { small?: boolean }) {
       />
       <path
         d="M10 13c6-10 17-10 27-2l-3 6-17-1z"
-        fill="#183a58"
+        fill={colors[2]}
         stroke="#476880"
       />
-      <path d="m10 16 10-3 18 3-2 3-22 1z" fill="#487485" />
+      <path d="m10 16 10-3 18 3-2 3-22 1z" fill={colors[3]} />
       <path d="M17 22h5m4 0h5" stroke="#3e3a36" strokeWidth="2" />
       <path d="M20 29q4 3 8 0" fill="none" stroke="#ae7663" />
-      <path d="m24 34-3 4 3 8 3-8z" fill="#269aca" />
+      <path d="m24 34-3 4 3 8 3-8z" fill={colors[3]} />
     </svg>
   );
 }

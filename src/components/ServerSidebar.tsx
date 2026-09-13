@@ -12,7 +12,11 @@ export function ServerSidebar({
   enter: (id: string) => void;
   selectGame: (id: GameId) => void;
 }) {
-  const [expanded, setExpanded] = useState<GameId[]>(["gomoku"]);
+  const [expanded, setExpanded] = useState<GameId[]>([
+    "gomoku",
+    "xiangqi",
+    "doudizhu",
+  ]);
   const [selectedPlayer, setSelectedPlayer] = useState(""),
     [sort, setSort] = useState<"name" | "wins">("name");
   const players = (snapshot?.players.filter((p) => p.online) ?? []).sort(
@@ -20,6 +24,7 @@ export function ServerSidebar({
       sort === "wins" ? b.wins - a.wins : a.name.localeCompare(b.name, "zh-CN"),
   );
   const selected = players.find((p) => p.id === selectedPlayer);
+  const selectedRoom = snapshot?.rooms.find((r) => r.id === selected?.roomId);
   return (
     <aside className="client-right">
       <section className="server-panel">
@@ -34,7 +39,7 @@ export function ServerSidebar({
           {games.map((g) => (
             <div className="server-game" key={g.id}>
               <div
-                className={`server-game-line ${selectedGame === g.id || (selectedGame === "all" && g.id === "gomoku") ? "selected" : ""}`}
+                className={`server-game-line ${selectedGame === g.id ? "selected" : ""}`}
               >
                 <button
                   className="tree-box"
@@ -57,7 +62,7 @@ export function ServerSidebar({
                   {g.name}
                   <span className="tree-count">
                     {g.available
-                      ? `（${snapshot?.players.filter((p) => p.online && p.roomId).length ?? 0}人）`
+                      ? `（${snapshot?.players.filter((p) => p.online && snapshot.rooms.some((r) => r.id === p.roomId && r.game === g.id)).length ?? 0}人）`
                       : "（未开放）"}
                   </span>
                 </button>
@@ -139,7 +144,7 @@ export function ServerSidebar({
                       className="player-name"
                       onClick={() => setSelectedPlayer(p.id)}
                     >
-                      <PlayerPortrait small />
+                      <PlayerPortrait small avatar={p.avatar} />
                       {p.name}
                       {p.id === snapshot?.me.id ? " [我]" : ""}
                     </button>
@@ -159,7 +164,7 @@ export function ServerSidebar({
         </div>
         <div className="player-details">
           {selected
-            ? `${selected.name}　${selected.guest ? "游客" : "注册用户"}　${selected.roomId ? `桌号 ${Number(selected.roomId) - 1000}` : "未入座"}`
+            ? `${selected.name}　${selected.guest ? "游客" : "注册用户"}　${selectedRoom ? `${selectedRoom.name} #${selectedRoom.id}` : "未入座"}`
             : "点击玩家查看资料"}
         </div>
       </section>
@@ -174,7 +179,9 @@ export function ServerSidebar({
                 {m.text}
               </p>
             ))}
-          <p className="system-rule">五子棋采用自由规则，双方准备后开始。</p>
+          <p className="system-rule">
+            五子棋、象棋两人，斗地主三人；全员准备后开始。
+          </p>
         </div>
       </section>
     </aside>

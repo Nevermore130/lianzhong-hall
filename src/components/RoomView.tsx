@@ -1,8 +1,9 @@
 import { ArrowLeft, Copy, Eye, Flag, UserRound } from "lucide-react";
 import { useState } from "react";
-import type { Command, Room, Snapshot } from "../../shared/protocol.ts";
+import type { Command, GomokuRoom, Snapshot } from "../../shared/protocol.ts";
 import { newBoard } from "../../shared/gomoku.ts";
 import { Board } from "./Board";
+import { GomokuStone } from "./GomokuStone";
 import { Modal } from "./Modal";
 export function RoomView({
   room,
@@ -10,7 +11,7 @@ export function RoomView({
   send,
   connected,
 }: {
-  room: Room;
+  room: GomokuRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
@@ -88,7 +89,7 @@ export function RoomView({
               key={i}
               className={`seat-card ${ownSeat === i ? "own-seat" : ""}`}
             >
-              <span className={`seat-disc ${i === 0 ? "black" : "white"}`} />
+              <GomokuStone stone={i === 0 ? 1 : 2} />
               <div>
                 <strong>{player?.name ?? "等待玩家"}</strong>
                 <small>
@@ -126,6 +127,7 @@ export function RoomView({
         board={room.match?.board ?? newBoard()}
         lastMove={room.match?.lastMove ?? null}
         disabled={!myTurn}
+        previewStone={ownSeat === 1 ? 2 : 1}
         onMove={(index) =>
           send({ type: "move", index, matchId: room.match!.id })
         }

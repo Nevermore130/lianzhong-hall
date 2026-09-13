@@ -1,4 +1,7 @@
 import type { Board } from "./gomoku.ts";
+import type { DoudizhuView } from "./doudizhu.ts";
+import type { XiangqiState } from "./xiangqi.ts";
+import type { ChatChannel, ChatMessage, ChatSnapshot } from "./chat.ts";
 export type GameId = "gomoku" | "xiangqi" | "doudizhu" | "mahjong";
 export const games: {
   id: GameId;
@@ -21,7 +24,7 @@ export const games: {
     name: "中国象棋",
     english: "CHINESE CHESS",
     description: "楚河汉界，将遇良才",
-    available: false,
+    available: true,
     symbol: "帥",
   },
   {
@@ -29,7 +32,7 @@ export const games: {
     name: "斗地主",
     english: "FIGHT THE LANDLORD",
     description: "三人一桌，欢乐加倍",
-    available: false,
+    available: true,
     symbol: "♠",
   },
   {
@@ -47,6 +50,7 @@ export type User = {
   guest: boolean;
   wins: number;
   losses: number;
+  avatar: number;
 };
 export type Player = User & { online: boolean; roomId: string | null };
 export type Seat = { userId: string; ready: boolean } | null;
@@ -59,14 +63,27 @@ export type Match = {
   winner: 1 | 2 | "draw" | null;
   reason: string | null;
 };
-export type Room = {
+type RoomBase = {
   id: string;
   name: string;
-  game: GameId;
-  seats: [Seat, Seat];
   watchers: string[];
+};
+export type GomokuRoom = RoomBase & {
+  game: "gomoku";
+  seats: [Seat, Seat];
   match: Match | null;
 };
+export type DoudizhuRoom<T = DoudizhuView> = RoomBase & {
+  game: "doudizhu";
+  seats: [Seat, Seat, Seat];
+  match: T | null;
+};
+export type XiangqiRoom = RoomBase & {
+  game: "xiangqi";
+  seats: [Seat, Seat];
+  match: XiangqiState | null;
+};
+export type Room<T = DoudizhuView> = GomokuRoom | XiangqiRoom | DoudizhuRoom<T>;
 export type Message = {
   id: string;
   name: string;
@@ -80,16 +97,38 @@ export type Snapshot = {
   players: Player[];
   rooms: Room[];
   messages: Message[];
+  chat: ChatSnapshot;
   roomId: string | null;
 };
-export type ServerEvent = Snapshot | { type: "error"; message: string };
+export type ServerEvent =
+  | Snapshot
+  | { type: "error"; message: string }
+  | { type: "chat:ack"; clientId: string; message: ChatMessage }
+  | { type: "chat:error"; clientId: string; message: string };
 export type Command =
   | { type: "join"; roomId: string }
   | { type: "leave" }
-  | { type: "sit"; seat: 0 | 1 }
+  | { type: "sit"; seat: 0 | 1 | 2 }
   | { type: "stand" }
   | { type: "ready" }
   | { type: "move"; index: number; matchId: string }
+  | {
+      type: "xq:move";
+      from: number;
+      to: number;
+      matchId: string;
+      revision: number;
+    }
+  | { type: "xq:draw"; matchId: string; revision: number }
+  | {
+      type: "xq:draw-response";
+      accept: boolean;
+      matchId: string;
+      revision: number;
+    }
+  | { type: "ddz:bid"; score: number; matchId: string; revision: number }
+  | { type: "ddz:play"; cards: number[]; matchId: string; revision: number }
+  | { type: "ddz:pass"; matchId: string; revision: number }
   | { type: "resign" }
-  | { type: "chat"; text: string }
+  | { type: "chat"; text: string; channel: ChatChannel; clientId: string }
   | { type: "create"; name: string; game: GameId };

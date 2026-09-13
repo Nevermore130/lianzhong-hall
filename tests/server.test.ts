@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -119,12 +120,17 @@ test("two independent accounts complete a real websocket game; spectators and il
   await black.error({ type: "join", roomId: "1002" });
   for (let i = 0; i < 5; i++) {
     black.send({ type: "move", index: i, matchId });
-    state = await white.state((s) => s.rooms[0].match?.board[i] === 1);
+    state = await white.state(
+      (s) => s.rooms[0].game === "gomoku" && s.rooms[0].match?.board[i] === 1,
+    );
     if (i === 0) await white.error({ type: "move", index: i, matchId });
     if (i < 4) {
       const index = 30 + i * 2;
       white.send({ type: "move", index, matchId });
-      await black.state((s) => s.rooms[0].match?.board[index] === 2);
+      await black.state(
+        (s) =>
+          s.rooms[0].game === "gomoku" && s.rooms[0].match?.board[index] === 2,
+      );
     }
   }
   assert.equal(state.rooms[0].match!.winner, 1);
@@ -136,9 +142,14 @@ test("two independent accounts complete a real websocket game; spectators and il
     1,
   );
   await spectator.state((s) => s.rooms[0].match?.winner === 1);
-  black.send({ type: "chat", text: "这盘棋下得开心！" });
+  black.send({
+    type: "chat",
+    text: "这盘棋下得开心！",
+    channel: "hall",
+    clientId: randomUUID(),
+  });
   await white.state((s) =>
-    s.messages.some((m) => m.text === "这盘棋下得开心！"),
+    s.chat.hall.messages.some((m) => m.text === "这盘棋下得开心！"),
   );
   black.send({ type: "ready" });
   white.send({ type: "ready" });
@@ -146,7 +157,11 @@ test("two independent accounts complete a real websocket game; spectators and il
     (s) =>
       s.rooms[0].match?.status === "playing" && s.rooms[0].match.id !== matchId,
   );
-  assert.equal(state.rooms[0].match!.board.filter(Boolean).length, 0);
+  assert.equal(
+    state.rooms[0].game === "gomoku" &&
+      state.rooms[0].match!.board.filter(Boolean).length,
+    0,
+  );
   await black.error({ type: "move", index: 0, matchId });
   white.send({ type: "resign" });
   await black.state((s) => s.me.wins === 2);
@@ -224,7 +239,7 @@ test("API authentication, cookie flags, origin validation, logout invalidation, 
   });
   assert.match(auth.headers.getSetCookie()[0], /HttpOnly; SameSite=Strict/);
   const client = await app.connect(cookie);
-  await client.error({ type: "create", name: "无效游戏", game: "doudizhu" });
+  await client.error({ type: "create", name: "无效游戏", game: "mahjong" });
   await client.error({ type: "chat", text: "x".repeat(201) });
   await client.error(null);
   const close = new Promise<number>((resolve) =>

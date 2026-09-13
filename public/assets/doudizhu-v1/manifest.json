@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "generated": ["felt.webp", "card-back.webp", "lobby-table.webp"],
+  "vector": {
+    "faces": "cards/{id}.svg",
+    "count": 54,
+    "landlord": "landlord.svg"
+  },
+  "cardViewBox": [0, 0, 80, 116],
+  "source": "assets/source/doudizhu-v1",
+  "rebuildVectors": "node scripts/build-card-assets.mjs"
+}

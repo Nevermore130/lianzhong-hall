@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "viewBox": [
+    0,
+    0,
+    540,
+    600
+  ],
+  "grid": {
+    "origin": [
+      54,
+      57
+    ],
+    "step": 54,
+    "files": 9,
+    "ranks": 10
+  },
+  "textures": [
+    "board-wood.webp",
+    "piece-wood.webp"
+  ],
+  "gridLayer": "board-grid.svg",
+  "pieces": [
+    {
+      "side": 1,
+      "kind": "king",
+      "glyph": "帥",
+      "file": "pieces/1-king.svg"
+    },
+    {
+      "side": 2,
+      "kind": "king",
+      "glyph": "將",
+      "file": "pieces/2-king.svg"
+    },
+    {
+      "side": 1,
+      "kind": "advisor",
+      "glyph": "仕",
+      "file": "pieces/1-advisor.svg"
+    },
+    {
+      "side": 2,
+      "kind": "advisor",
+      "glyph": "士",
+      "file": "pieces/2-advisor.svg"
+    },
+    {
+      "side": 1,
+      "kind": "elephant",
+      "glyph": "相",
+      "file": "pieces/1-elephant.svg"
+    },
+    {
+      "side": 2,
+      "kind": "elephant",
+      "glyph": "象",
+      "file": "pieces/2-elephant.svg"
+    },
+    {
+      "side": 1,
+      "kind": "horse",
+      "glyph": "馬",
+      "file": "pieces/1-horse.svg"
+    },
+    {
+      "side": 2,
+      "kind": "horse",
+      "glyph": "馬",
+      "file": "pieces/2-horse.svg"
+    },
+    {
+      "side": 1,
+      "kind": "rook",
+      "glyph": "車",
+      "file": "pieces/1-rook.svg"
+    },
+    {
+      "side": 2,
+      "kind": "rook",
+      "glyph": "車",
+      "file": "pieces/2-rook.svg"
+    },
+    {
+      "side": 1,
+      "kind": "cannon",
+      "glyph": "炮",
+      "file": "pieces/1-cannon.svg"
+    },
+    {
+      "side": 2,
+      "kind": "cannon",
+      "glyph": "砲",
+      "file": "pieces/2-cannon.svg"
+    },
+    {
+      "side": 1,
+      "kind": "pawn",
+      "glyph": "兵",
+      "file": "pieces/1-pawn.svg"
+    },
+    {
+      "side": 2,
+      "kind": "pawn",
+      "glyph": "卒",
+      "file": "pieces/2-pawn.svg"
+    }
+  ],
+  "preview": "preview.html",
+  "source": "assets/source/xiangqi-v1/PROMPTS.md",
+  "rebuild": "node scripts/build-xiangqi-assets.mjs"
+}

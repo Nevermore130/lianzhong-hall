@@ -1,0 +1,262 @@
+.retro-dialog {
+  max-height: calc(100dvh - 24px);
+}
+.retro-dialog:has(.account-center) > .window-title {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+.retro-dialog:has(.account-center) {
+  width: 640px;
+}
+.account-center {
+  font:
+    12px Tahoma,
+    "SimSun",
+    serif;
+  color: #222;
+}
+.account-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.account-heading .player-portrait {
+  width: 44px;
+  height: 44px;
+}
+.account-heading strong {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 6px;
+}
+.account-heading span {
+  font-size: 11px;
+  color: #555;
+}
+.account-tabs {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  padding: 0 4px;
+}
+.account-tabs button {
+  border-radius: 0;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.account-tabs button[aria-pressed="true"] {
+  padding-top: 10px;
+  margin-bottom: -2px;
+  z-index: 1;
+  border-bottom: 0;
+  box-shadow: inset 1px 1px #fff;
+}
+.account-panel {
+  border: 2px solid;
+  border-color: #fff #808080 #808080 #fff;
+  padding: 16px;
+  min-height: 290px;
+}
+.account-panel p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0 0 10px;
+}
+.account-panel .auth-form {
+  margin-top: 0;
+}
+.account-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  border: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+}
+.account-fields > button,
+.account-panel > button {
+  padding: 6px 14px;
+  align-self: flex-start;
+  min-width: 100px;
+}
+.account-group {
+  padding: 14px;
+  border: 2px groove #fff;
+  margin: 0 0 18px;
+  min-width: 0;
+}
+.account-group:last-child {
+  margin-bottom: 0;
+}
+.account-group legend,
+.avatar-picker legend {
+  padding: 0 6px;
+  color: #000080;
+}
+.avatar-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 10px 4px;
+  border: 1px solid #999;
+  min-width: 0;
+}
+.avatar-picker button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 2px;
+  font-size: 10px;
+}
+.avatar-picker button[aria-pressed="true"] {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+  background: #d0d8e4;
+  box-shadow: inset 1px 1px #777;
+}
+.avatar-picker .player-portrait {
+  width: 36px;
+  height: 36px;
+}
+.account-facts {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 8px;
+  margin: 0 0 5px;
+  font-size: 11px;
+}
+.account-facts dt {
+  color: #555;
+}
+.account-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.form-success {
+  font-size: 12px;
+  color: #16572a;
+  line-height: 1.7;
+}
+.account-panel .account-feedback {
+  margin: 14px 0 0;
+}
+.mail-notice {
+  background: #ffffe1;
+  border: 1px solid #a3a387;
+  padding: 9px;
+  font-size: 11px;
+  line-height: 1.8;
+  margin-top: 12px !important;
+}
+.mail-notice a {
+  display: block;
+  color: #000080;
+  text-decoration: underline;
+}
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 5px;
+}
+.auth-links button {
+  font-size: 12px;
+}
+.session-list {
+  background: white;
+  border: 2px inset #ddd;
+  max-height: 235px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 11px;
+  border-bottom: 1px solid #ddd;
+}
+.session-row:last-child {
+  border: 0;
+}
+.session-row strong {
+  font-size: 12px;
+}
+.session-row small {
+  display: block;
+  margin-top: 5px;
+  color: #555;
+  font-size: 10px;
+}
+.session-row em {
+  display: inline-block;
+  margin-left: 7px;
+  color: #006000;
+  font-size: 10px;
+  font-style: normal;
+}
+.session-row button {
+  flex-shrink: 0;
+  padding: 5px 9px;
+}
+.session-list + button + .auth-form {
+  margin: 18px 0;
+}
+.account-panel .account-footnote {
+  margin: 14px 0 0;
+  color: #555;
+  font-size: 11px;
+}
+.deletion-notice {
+  background: #ffffe1;
+  padding: 12px;
+  border: 1px solid #9f9370;
+  margin-bottom: 16px;
+}
+.deletion-notice strong {
+  color: #800000;
+}
+.deletion-notice p {
+  margin: 8px 0 0;
+}
+.auth-form .confirm-delete {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.confirm-delete input {
+  width: 14px;
+  height: 14px;
+  accent-color: #000080;
+}
+.danger-button {
+  color: #800000;
+}
+@media (max-width: 520px) {
+  .retro-dialog:has(.account-center) .dialog-body {
+    padding: 12px;
+  }
+  .account-panel {
+    padding: 12px 10px;
+  }
+  .account-tabs {
+    gap: 0;
+    padding: 0;
+  }
+  .account-tabs button {
+    padding: 7px;
+    font-size: 11px;
+  }
+  .avatar-picker {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .account-group {
+    padding: 10px;
+  }
+}

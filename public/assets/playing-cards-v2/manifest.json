@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "viewBox": [
+    0,
+    0,
+    80,
+    116
+  ],
+  "faces": {
+    "path": "cards/{id}.svg",
+    "count": 54,
+    "type": "transparent exact index/pip layer"
+  },
+  "shared": [
+    "paper.webp",
+    "card-back.webp",
+    "joker-red.webp",
+    "joker-black.webp",
+    "court-jack.webp",
+    "court-queen.webp",
+    "court-king.webp"
+  ],
+  "stylesheet": "card.css",
+  "preview": "preview.html",
+  "source": "assets/source/playing-cards-v2",
+  "rebuild": "node scripts/build-card-assets-v2.mjs"
+}

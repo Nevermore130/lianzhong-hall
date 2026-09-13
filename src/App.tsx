@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -8,7 +8,6 @@ import {
   Monitor,
   Plus,
   Search,
-  Send,
   ShieldCheck,
   Sparkles,
   Volume2,
@@ -16,16 +15,25 @@ import {
   X,
 } from "lucide-react";
 import { games, type GameId, type User } from "../shared/protocol.ts";
-import { api, enterHall, useHall } from "./lib/client";
+import { api, useHall } from "./lib/client";
+import { useIdentity } from "./lib/identity";
+import { AuthDialog, type AuthMode } from "./components/AuthDialog";
+import { AccountCenter } from "./components/AccountCenter";
 import { ToolbarIcon } from "./components/ClientArt";
 import { LobbyScene } from "./components/LobbyScene";
 import { ServerSidebar } from "./components/ServerSidebar";
 import { Modal } from "./components/Modal";
 import { Practice } from "./components/Practice";
 import { RoomView } from "./components/RoomView";
+import { DoudizhuRoomView } from "./components/DoudizhuRoomView";
+import { DoudizhuPractice } from "./components/DoudizhuPractice";
+import { XiangqiRoomView } from "./components/XiangqiRoomView";
+import { XiangqiPractice } from "./components/XiangqiPractice";
+import { ChatPanel } from "./components/ChatPanel";
+import { useVisualViewport } from "./lib/useVisualViewport";
 
 type Dialog =
-  "login" | "register" | "create" | "help" | "about" | "practice" | null;
+  AuthMode | "account" | "create" | "help" | "about" | "practice" | null;
 function savedSound() {
   try {
     return localStorage.getItem("hall:sound") === "on";
@@ -34,10 +42,24 @@ function savedSound() {
   }
 }
 export default function App() {
+  useVisualViewport();
   const [showSidebar, setShowSidebar] = useState(false);
-  const [user, setUser] = useState<User | null>(null),
-    [bootError, setBootError] = useState("");
-  const [dialog, setDialog] = useState<Dialog>(null),
+  const { user, bootError, revision, accept, reconcile } = useIdentity();
+  const [recovery] = useState(() => {
+    const match = /^#(verify-email|reset-password)=([a-f0-9]{64})$/.exec(
+      location.hash,
+    );
+    return match
+      ? {
+          mode:
+            match[1] === "verify-email"
+              ? ("verify" as const)
+              : ("reset" as const),
+          token: match[2],
+        }
+      : null;
+  });
+  const [dialog, setDialog] = useState<Dialog>(recovery?.mode ?? null),
     [game, setGame] = useState<GameId | "all">("all");
   const [search, setSearch] = useState(""),
     [hideFull, setHideFull] = useState(false),
@@ -52,47 +74,36 @@ export default function App() {
       return [];
     }
   });
-  const [chat, setChat] = useState(""),
-    [sound, setSound] = useState(savedSound),
+  const [sound, setSound] = useState(savedSound),
     [minimized, setMinimized] = useState(false);
   const [now, setNow] = useState(new Date()),
-    [busy, setBusy] = useState(false),
-    [formError, setFormError] = useState("");
-  const { snapshot, status, error, setError, send } = useHall(user, () => {
-    setUser(null);
-    setBootError("登录已失效，请重新进入大厅");
-  });
-  const chatEnd = useRef<HTMLDivElement>(null),
-    inviteJoined = useRef(false),
+    [busy, setBusy] = useState(false);
+  const { snapshot, status, error, setError, send, subscribe } = useHall(
+    user,
+    () => {
+      void reconcile();
+    },
+    revision,
+  );
+  const inviteJoined = useRef(false),
     audio = useRef<AudioContext | null>(null);
   const room = snapshot?.rooms.find((r) => r.id === snapshot.roomId),
     me = snapshot?.me ?? user;
+  const moveRevision =
+    room?.game === "gomoku" ? room.match?.lastMove : room?.match?.revision;
   const activeMatch =
     room?.match?.status === "playing" &&
     room.seats.some((s) => s?.userId === me?.id);
   const online = snapshot?.players.filter((p) => p.online) ?? [];
   const connected = status === "connected";
   useEffect(() => {
-    let active = true;
-    enterHall()
-      .then((data) => {
-        if (active) setUser(data.user);
-      })
-      .catch((e) => {
-        if (active) setBootError(e.message);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+    if (recovery)
+      history.replaceState(null, "", location.pathname + location.search);
+  }, [recovery]);
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(timer);
   }, []);
-  useEffect(() => {
-    const messages = chatEnd.current?.parentElement;
-    if (messages) messages.scrollTop = messages.scrollHeight;
-  }, [snapshot?.messages.length]);
   useEffect(() => {
     if (connected && snapshot && !inviteJoined.current) {
       inviteJoined.current = true;
@@ -129,13 +140,8 @@ export default function App() {
     }
   }
   useEffect(() => {
-    if (
-      sound &&
-      room?.match?.lastMove !== null &&
-      room?.match?.lastMove !== undefined
-    )
-      tone();
-  }, [room?.match?.id, room?.match?.lastMove, sound]);
+    if (sound && moveRevision !== null && moveRevision !== undefined) tone();
+  }, [room?.match?.id, moveRevision, sound]);
   function toggleSound() {
     const next = !sound;
     setSound(next);
@@ -147,7 +153,6 @@ export default function App() {
     if (next) tone();
   }
   function open(value: Dialog) {
-    setFormError("");
     setDialog(value);
   }
   function selectGame(id: GameId | "all") {
@@ -160,41 +165,19 @@ export default function App() {
     setOnlyFavorites(false);
     if (room && !activeMatch) send({ type: "leave" });
   }
-  async function auth(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setFormError("");
-    const fields = new FormData(event.currentTarget);
-    try {
-      const result = await api<{ user: User }>(
-        dialog === "register" ? "register" : "login",
-        { name: fields.get("name"), password: fields.get("password") },
-      );
-      setUser(result.user);
-      setDialog(null);
-    } catch (error) {
-      setFormError((error as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
   async function logout() {
     setBusy(true);
     try {
       await api("logout", {});
-      setUser(null);
+      accept(null);
       const result = await api<{ user: User }>("guest", {});
-      setUser(result.user);
+      accept(result.user);
       setDialog(null);
     } catch (error) {
       setError((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }
-  function submitChat(event: FormEvent) {
-    event.preventDefault();
-    if (chat.trim() && send({ type: "chat", text: chat })) setChat("");
   }
   const filteredRooms =
     snapshot?.rooms.filter(
@@ -204,7 +187,8 @@ export default function App() {
         (!hideFull || r.seats.some((s) => !s)) &&
         `${r.name}${r.id}`.includes(search.trim()),
     ) ?? [];
-  const currentGame = games.find((g) => g.id === game),
+  const selectedGame = room?.game ?? game;
+  const currentGame = games.find((g) => g.id === selectedGame),
     time = now.toLocaleTimeString("zh-CN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -245,7 +229,7 @@ export default function App() {
           <button
             className="identity-capsule"
             disabled={!!activeMatch}
-            onClick={() => open(me?.guest ? "login" : "about")}
+            onClick={() => open(me?.guest ? "login" : "account")}
           >
             <ToolbarIcon kind="account" />
             <span>
@@ -267,7 +251,7 @@ export default function App() {
             </button>
             <button
               disabled={!!activeMatch}
-              onClick={() => open(me?.guest ? "register" : "about")}
+              onClick={() => open(me?.guest ? "register" : "account")}
             >
               <ToolbarIcon kind="account" />
               <span>{me?.guest ? "注册账号" : "我的账号"}</span>
@@ -324,21 +308,15 @@ export default function App() {
         <>
           <div className="client-tabbar">
             <span className="announcement">
-              ◆ 当前开放五子棋，双方入座并准备后开始游戏。
+              ◆ 已开放五子棋、中国象棋与斗地主，入座并准备后开始游戏。
             </span>
             <div className="game-tabs" role="tablist" aria-label="游戏切换">
               {games.map((g) => (
                 <button
                   role="tab"
-                  aria-selected={
-                    game === g.id || (game === "all" && g.id === "gomoku")
-                  }
+                  aria-selected={selectedGame === g.id}
                   key={g.id}
-                  className={
-                    game === g.id || (game === "all" && g.id === "gomoku")
-                      ? "active"
-                      : ""
-                  }
+                  className={selectedGame === g.id ? "active" : ""}
                   onClick={() => selectGame(g.id)}
                 >
                   <span className={`tab-symbol ${g.id}`}>{g.symbol}</span>
@@ -348,23 +326,27 @@ export default function App() {
             </div>
             <button
               className="mobile-directory"
+              aria-expanded={showSidebar}
               onClick={() => setShowSidebar((v) => !v)}
             >
-              房间 / 玩家
+              {showSidebar ? "返回棋桌" : "房间 / 玩家"}
             </button>
           </div>
           {bootError && (
             <div className="connection-banner" role="alert">
               {bootError}
+              <button onClick={() => open("login")}>重新登录</button>
               <button
+                disabled={busy}
                 onClick={() => {
-                  setBootError("");
-                  void enterHall()
-                    .then((result) => setUser(result.user))
-                    .catch((e) => setBootError(e.message));
+                  setBusy(true);
+                  void api<{ user: User }>("guest", {})
+                    .then(({ user }) => accept(user))
+                    .catch((error: Error) => setError(error.message))
+                    .finally(() => setBusy(false));
                 }}
               >
-                重新连接
+                游客进入
               </button>
             </div>
           )}
@@ -380,7 +362,7 @@ export default function App() {
               <section className="table-pane">
                 <div className="hall-menubar">
                   <span>
-                    <b>{currentGame?.name ?? "五子棋"}</b> /{" "}
+                    <b>{currentGame?.name ?? "全部游戏"}</b> /{" "}
                     {room
                       ? room.name
                       : onlyFavorites
@@ -395,13 +377,13 @@ export default function App() {
                         !!(currentGame && !currentGame.available)
                       }
                       onClick={() => {
-                        const next = snapshot?.rooms.find((r) =>
+                        const next = filteredRooms.find((r) =>
                           r.seats.some((s) => !s),
                         );
                         if (next) send({ type: "join", roomId: next.id });
                       }}
                     >
-                      快速入座
+                      快速进桌
                     </button>
                     <button
                       disabled={
@@ -455,13 +437,31 @@ export default function App() {
                 )}
                 {room && snapshot ? (
                   <div className="live-room-scroll">
-                    <RoomView
-                      key={room.id}
-                      room={room}
-                      snapshot={snapshot}
-                      send={send}
-                      connected={connected}
-                    />
+                    {room.game === "doudizhu" ? (
+                      <DoudizhuRoomView
+                        room={room}
+                        snapshot={snapshot}
+                        send={send}
+                        connected={connected}
+                        key={room.id}
+                      />
+                    ) : room.game === "xiangqi" ? (
+                      <XiangqiRoomView
+                        key={room.id}
+                        room={room}
+                        snapshot={snapshot}
+                        send={send}
+                        connected={connected}
+                      />
+                    ) : (
+                      <RoomView
+                        key={room.id}
+                        room={room}
+                        snapshot={snapshot}
+                        send={send}
+                        connected={connected}
+                      />
+                    )}
                   </div>
                 ) : (
                   <LobbyScene
@@ -482,68 +482,25 @@ export default function App() {
                   />
                 )}
               </section>
-              <section className="client-chat">
-                <div className="chat-tabs">
-                  <span>大厅聊天</span>
-                  <small>{connected ? "已连接" : "连接中"}</small>
-                  <button
-                    onClick={() => setChat(chat + " ☺")}
-                    aria-label="插入表情"
-                  >
-                    ☺
-                  </button>
-                </div>
-                <div
-                  className="chat-messages"
-                  role="log"
-                  aria-label="大厅消息"
-                  aria-live="polite"
-                >
-                  {snapshot?.messages
-                    .filter((m) => m.userId)
-                    .map((message) => (
-                      <div className="chat-line" key={message.id}>
-                        <time>
-                          {new Date(message.time).toLocaleTimeString("zh-CN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </time>
-                        <b>
-                          {message.name}
-                          {message.userId === me?.id ? "[我]" : ""}：
-                        </b>
-                        <span>{message.text}</span>
-                      </div>
-                    ))}
-                  <div ref={chatEnd} />
-                </div>
-                <form className="chat-form" onSubmit={submitChat}>
-                  <label>
-                    对{" "}
-                    <select aria-label="聊天对象">
-                      <option>所有人</option>
-                    </select>{" "}
-                    说：
-                  </label>
-                  <input
-                    aria-label="聊天消息"
-                    placeholder="输入聊天内容，按 Enter 发送"
-                    value={chat}
-                    maxLength={200}
-                    disabled={!connected}
-                    onChange={(e) => setChat(e.target.value)}
-                  />
-                  <button type="submit" disabled={!connected || !chat.trim()}>
-                    发送
-                    <Send size={11} />
-                  </button>
-                </form>
-              </section>
+              {me ? (
+                <ChatPanel
+                  key={me.id}
+                  user={me}
+                  snapshot={snapshot?.chat ?? null}
+                  connected={connected}
+                  reading={!dialog && !showSidebar}
+                  send={send}
+                  subscribe={subscribe}
+                />
+              ) : (
+                <section className="client-chat">
+                  <p className="chat-empty">登录或以游客身份进入后即可聊天。</p>
+                </section>
+              )}
             </div>
             <ServerSidebar
               snapshot={snapshot}
-              selectedGame={game}
+              selectedGame={selectedGame}
               selectGame={selectGame}
               enter={(id) => {
                 send({ type: "join", roomId: id });
@@ -560,7 +517,12 @@ export default function App() {
               　游戏桌：{snapshot?.rooms.length ?? 0}
             </span>
             <span>
-              五子棋 · 自由规则 <time>{time}</time>
+              {currentGame?.id === "doudizhu"
+                ? "斗地主 · 经典叫分"
+                : currentGame?.id === "xiangqi"
+                  ? "中国象棋 · 娱乐规则"
+                  : "五子棋 · 自由规则"}{" "}
+              <time>{time}</time>
             </span>
           </footer>
         </>
@@ -572,72 +534,45 @@ export default function App() {
           <button onClick={() => setError("")}>关闭</button>
         </div>
       )}
-      {dialog === "practice" && <Practice close={() => setDialog(null)} />}
-      {(dialog === "login" || dialog === "register") && (
-        <Modal
-          title={dialog === "register" ? "注册游戏账号" : "账号登录"}
+      {dialog === "practice" &&
+        (currentGame?.id === "doudizhu" ? (
+          <DoudizhuPractice close={() => setDialog(null)} />
+        ) : currentGame?.id === "xiangqi" ? (
+          <XiangqiPractice close={() => setDialog(null)} />
+        ) : (
+          <Practice close={() => setDialog(null)} />
+        ))}
+      {dialog &&
+        ["login", "register", "forgot", "reset", "verify"].includes(dialog) && (
+          <AuthDialog
+            key={dialog}
+            mode={dialog as AuthMode}
+            token={recovery?.token}
+            user={me}
+            close={() => setDialog(null)}
+            switchMode={open}
+            accepted={(next) => {
+              accept(next);
+              setDialog(null);
+            }}
+            verified={() => {
+              void reconcile(true);
+            }}
+          />
+        )}
+      {dialog === "account" && me && !me.guest && (
+        <AccountCenter
+          user={me}
           close={() => setDialog(null)}
-        >
-          <div className="auth-icon">
-            <Monitor size={30} />
-          </div>
-          <h2>{dialog === "register" ? "注册游戏账号" : "登录游戏大厅"}</h2>
-          <p>请输入昵称和密码。账号可保存游戏战绩。</p>
-          <form className="auth-form" onSubmit={auth}>
-            <label>
-              棋友昵称
-              <input
-                name="name"
-                required
-                minLength={2}
-                maxLength={16}
-                placeholder="2–16 位中文、字母或数字"
-                autoComplete="username"
-              />
-            </label>
-            <label>
-              密码
-              <input
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                maxLength={72}
-                placeholder="至少 8 位"
-                autoComplete={
-                  dialog === "register" ? "new-password" : "current-password"
-                }
-              />
-            </label>
-            {dialog === "register" && (
-              <small>新账号拥有独立战绩，游客战绩暂不迁移。</small>
-            )}
-            {formError && (
-              <p className="form-error" role="alert">
-                {formError}
-              </p>
-            )}
-            <button className="primary" type="submit" disabled={busy}>
-              {busy
-                ? "请稍候…"
-                : dialog === "register"
-                  ? "注册并进入大厅"
-                  : "登录大厅"}
-              <ArrowRight size={14} />
-            </button>
-          </form>
-          <button
-            className="text-button"
-            onClick={() => open(dialog === "register" ? "login" : "register")}
-          >
-            {dialog === "register"
-              ? "已有账号，直接登录"
-              : "第一次来？注册一个账号"}
-          </button>
-        </Modal>
+          accepted={accept}
+          deleted={() => {
+            accept(null);
+            setDialog("login");
+          }}
+        />
       )}
       {dialog === "create" && (
-        <Modal title="创建五子棋房间" close={() => setDialog(null)}>
+        <Modal title="创建游戏房间" close={() => setDialog(null)}>
           <h2>创建游戏桌</h2>
           <p>创建后可复制邀请链接，好友进入后即可入座。</p>
           <form
@@ -647,8 +582,10 @@ export default function App() {
               const name = new FormData(event.currentTarget).get(
                 "roomName",
               ) as string;
-              if (send({ type: "create", name, game: "gomoku" }))
-                setDialog(null);
+              const value = new FormData(event.currentTarget).get("game");
+              const game =
+                value === "doudizhu" || value === "xiangqi" ? value : "gomoku";
+              if (send({ type: "create", name, game })) setDialog(null);
             }}
           >
             <label>
@@ -661,12 +598,19 @@ export default function App() {
                 maxLength={16}
               />
             </label>
-            <div className="form-game">
-              <span className="form-game-icon">● ○</span>
-              <span>
-                五子棋<small>双人联机 · 自由规则</small>
-              </span>
-            </div>
+            <label>
+              游戏
+              <select
+                name="game"
+                defaultValue={
+                  currentGame?.available ? currentGame.id : "gomoku"
+                }
+              >
+                <option value="gomoku">五子棋 · 双人自由规则</option>
+                <option value="xiangqi">中国象棋 · 双人对弈</option>
+                <option value="doudizhu">斗地主 · 三人经典叫分</option>
+              </select>
+            </label>
             <button type="submit" className="primary" disabled={!connected}>
               <Plus size={15} />
               创建房间
@@ -677,33 +621,83 @@ export default function App() {
       {dialog === "help" && (
         <Modal title="游戏帮助" close={() => setDialog(null)}>
           <h2>游戏操作说明</h2>
-          <ol className="help-steps">
-            <li>
-              <strong>进入房间</strong>
-              <p>点击大厅里的棋桌，或创建自己的房间。</p>
-            </li>
-            <li>
-              <strong>选择席位并准备</strong>
-              <p>
-                选择黑棋或白棋的座位，复制邀请链接给朋友。双方点击“准备开始”就会开局。
-              </p>
-            </li>
-            <li>
-              <strong>胜负规则</strong>
-              <p>
-                黑棋先行，轮流落子。横、竖、斜任意方向连续五子或更多获胜，本版不设禁手。
-              </p>
-            </li>
-          </ol>
+          {currentGame?.id === "doudizhu" ? (
+            <ul className="ddz-rule-list">
+              <li>
+                三人入座并准备，54 张牌，每人 17 张、底牌 3 张；叫分时底牌隐藏。
+              </li>
+              <li>
+                轮流叫 1–3 分或不叫，必须高于前人；叫 3
+                分立即成为地主。都不叫则重新发牌。
+              </li>
+              <li>
+                地主先出，按座位顺序轮流接牌；两人不出后由最后出牌者重新领出。先出完者所属一方获胜。
+              </li>
+              <li>
+                支持单张、对子、三张、三带一/一对、顺子（至少 5 张）、连对（至少
+                3 对）、飞机及单/对翅膀、四带二/两对、炸弹和王炸。
+              </li>
+              <li>
+                顺子、连对和飞机主体不含 2
+                与王。单翅可以成对，不带双王，不带主体点数；对翅必须为不同对子。四带二可带一对，不带双王。
+              </li>
+              <li>
+                同牌型、同张数比较主体大小；炸弹压普通牌，王炸最大。炸弹、王炸、春天/反春翻倍，地主得失两份分，农民各一份。
+              </li>
+              <li>
+                点击手牌选中，支持提示、重选和不出；领出时必须出牌。娱乐计分，无充值与现金结算。
+              </li>
+            </ul>
+          ) : currentGame?.id === "xiangqi" ? (
+            <ul className="ddz-rule-list">
+              <li>
+                两人入座并准备，红方先行。点击自己的棋子，再点击绿点走棋，绿圈表示可吃子。
+              </li>
+              <li>
+                車走直线；馬走日且不能蹩腿；相／象走田、不能塞眼和过河；仕／士与帥／將不能离开九宫；炮须隔一个棋子吃子；兵／卒过河后可横走，不能后退。
+              </li>
+              <li>
+                走棋后不能使己方帥／將受攻击，也不能将帅照面。将死或困毙（无合法走法）均判负。
+              </li>
+              <li>
+                可求和、认输、翻转棋盘；联机不开放悔棋。练习提供红黑执方、电脑难度、提示与悔棋，不计战绩。
+              </li>
+              <li>
+                本版娱乐规则：同一局面出现三次，单方持续长将判该方负，其余重复局面判和；连续
+                120 步未吃子判和。复杂长捉、棋例裁定和比赛计时暂未实现。
+              </li>
+            </ul>
+          ) : (
+            <>
+              <ol className="help-steps">
+                <li>
+                  <strong>进入房间</strong>
+                  <p>点击大厅里的棋桌，或创建自己的房间。</p>
+                </li>
+                <li>
+                  <strong>选择席位并准备</strong>
+                  <p>
+                    选择黑棋或白棋的座位，复制邀请链接给朋友。双方点击“准备开始”就会开局。
+                  </p>
+                </li>
+                <li>
+                  <strong>胜负规则</strong>
+                  <p>
+                    黑棋先行，轮流落子。横、竖、斜任意方向连续五子或更多获胜，本版不设禁手。
+                  </p>
+                </li>
+              </ol>
+            </>
+          )}
           <div className="help-note">
             <ShieldCheck size={19} />
             <p>
-              刷新页面可恢复座位。断线时暂停落子，30
-              秒未回来则判负。对局中离开也会判负。
+              刷新可恢复座位与本人手牌。断线暂停操作，30
+              秒未返回则所在方判负；斗地主叫分阶段退出取消本局，不计战绩。
             </p>
           </div>
           <p className="muted">
-            同一浏览器的多个标签页共享账号。测试双人对局，请用普通窗口和无痕窗口，或两种浏览器。
+            同一浏览器的多个标签页共享账号。多人对局需要独立浏览器、配置文件或设备。选择五子棋、象棋或斗地主后点击「单机游戏」即可练习。
           </p>
           <button
             className="primary full-width"
@@ -732,7 +726,7 @@ export default function App() {
             </span>
             <span>
               <Check size={14} />
-              五子棋双人对局与观战
+              五子棋、象棋与斗地主联机、练习
             </span>
             <span>
               <Sparkles size={14} />

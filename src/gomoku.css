@@ -1,0 +1,184 @@
+.board-frame {
+  width: min(100%, 440px);
+  margin: 12px auto;
+  padding: 5px;
+  border: 5px solid #b8894c;
+  border-color: #d6a466 #8c5c2f #704725 #c19355;
+  background:
+    linear-gradient(#8b542b38, #522f1a66),
+    url("/assets/gomoku-v1/board-wood.webp") center / cover;
+  box-shadow:
+    inset 0 0 0 1px #f8dc9980,
+    0 1px 0 1px #402e24,
+    2px 4px 5px #142b4059;
+}
+.board-surface {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 14px;
+  grid-template-rows: 14px auto 14px;
+  background:
+    linear-gradient(#ffecc52e, #fce2aa2e),
+    url("/assets/gomoku-v1/board-wood.webp") center / cover;
+  box-shadow:
+    inset 0 0 0 1px #6d452b99,
+    inset 0 0 8px #93592733,
+    0 0 0 1px #edc38a66;
+}
+.board-coordinates {
+  display: grid;
+  color: #674420;
+  font:
+    9px Tahoma,
+    sans-serif;
+  text-align: center;
+  align-items: center;
+  user-select: none;
+}
+.coordinates-top,
+.coordinates-bottom {
+  grid-template-columns: repeat(15, minmax(0, 1fr));
+  grid-column: 2;
+}
+.coordinates-top {
+  grid-row: 1;
+}
+.coordinates-bottom {
+  grid-row: 3;
+}
+.coordinates-left,
+.coordinates-right {
+  grid-template-rows: repeat(15, minmax(0, 1fr));
+  grid-row: 2;
+}
+.coordinates-left {
+  grid-column: 1;
+}
+.coordinates-right {
+  grid-column: 3;
+}
+.gomoku-board {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(15, minmax(0, 1fr));
+  grid-template-rows: repeat(15, minmax(0, 1fr));
+  aspect-ratio: 1;
+  position: relative;
+  isolation: isolate;
+}
+.board-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.board-grid-lines {
+  fill: none;
+  stroke: #785329;
+  stroke-width: 0.65;
+}
+.board-star-points {
+  fill: #67451f;
+}
+.gomoku-stone {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  /* The same centered circular aperture normalizes both sprites' margins. */
+  background-position: center;
+  background-size: 119.05% 119.05%;
+  background-repeat: no-repeat;
+  box-shadow:
+    0.5px 1px 1px #3d240e80,
+    inset 0 0 0 0.5px #271d182e;
+  pointer-events: none;
+}
+.stone-black {
+  background-color: #20252b;
+  background-image: url("/assets/gomoku-v1/stone-black.webp");
+}
+.stone-white {
+  background-color: #eee9dc;
+  background-image: url("/assets/gomoku-v1/stone-white.webp");
+}
+.seat-card > .gomoku-stone {
+  width: 23px;
+  height: 23px;
+}
+.point {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: none !important;
+  touch-action: manipulation;
+}
+.point:active:not(:disabled) {
+  border: 0;
+  box-shadow: none;
+  transform: none;
+}
+.point:disabled {
+  opacity: 1;
+}
+.point > .gomoku-stone {
+  position: absolute;
+  inset: 7%;
+}
+.empty-point > .gomoku-stone {
+  visibility: hidden;
+}
+.point.empty-point:focus-visible > .gomoku-stone {
+  visibility: visible;
+  opacity: 0.48;
+}
+@media (hover: hover) {
+  .point.empty-point:hover:not(:disabled) > .gomoku-stone {
+    visibility: visible;
+    opacity: 0.48;
+  }
+}
+.point:focus-visible {
+  outline-offset: -1px;
+  z-index: 2;
+  outline-color: #684025;
+}
+.last-move-marker {
+  position: absolute;
+  inset: 31%;
+  background: url("/assets/gomoku-v1/last-move.svg") center / contain no-repeat;
+  pointer-events: none;
+}
+@media (max-width: 1100px) {
+  .board-frame {
+    max-width: 395px;
+  }
+}
+@media (max-width: 820px) {
+  .board-frame {
+    max-width: 430px;
+  }
+}
+@media (max-width: 520px) {
+  .board-frame {
+    margin: 10px auto;
+    padding: 3px;
+    border-width: 4px;
+  }
+  .board-surface {
+    grid-template-columns: 11px minmax(0, 1fr) 11px;
+    grid-template-rows: 11px auto 11px;
+  }
+  .board-coordinates {
+    font-size: 7px;
+  }
+  .seat-card > .gomoku-stone {
+    width: 20px;
+    height: 20px;
+  }
+}

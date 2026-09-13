@@ -1,0 +1,328 @@
+.xq-room-view {
+  --xq-room-board-width: min(540px, max(240px, calc(90dvh - 360px)));
+  max-width: calc(var(--xq-room-board-width) + 214px);
+  container-type: inline-size;
+}
+.client-left:has(.xq-room-view) {
+  grid-template-rows: minmax(0, 1fr) 104px;
+}
+.xq-room-view .xq-board {
+  max-width: var(--xq-room-board-width);
+}
+.xq-room-view .xq-seats {
+  margin: 5px auto;
+}
+.xq-room-view .xq-seats .seat-card {
+  padding: 4px 7px;
+}
+.xq-room-view .xq-seats .xq-piece {
+  width: 30px;
+}
+.xq-room-view .xq-history {
+  height: 108px;
+}
+.xq-room-view .xq-position {
+  margin: 7px auto;
+}
+.retro-dialog.wide:has(.xq-position) {
+  width: 800px;
+}
+.retro-dialog:has(.xq-position) .dialog-body {
+  container-type: inline-size;
+}
+.retro-dialog .xq-board {
+  max-width: min(540px, max(300px, calc(90vh - 246px)));
+}
+.xq-position {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px;
+  gap: 12px;
+  align-items: start;
+  margin: 12px auto;
+}
+.xq-board {
+  width: 100%;
+  max-width: 540px;
+  position: relative;
+  margin: 0 auto;
+  aspect-ratio: 9 / 10;
+  background: #d6a45e url("/assets/xiangqi-v1/board-wood.webp") center / 100%
+    100%;
+  box-shadow: 0 2px 4px #26180866;
+  border-radius: 3px;
+}
+.xq-grid,
+.xq-coordinates {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.xq-coordinates {
+  font:
+    13px Georgia,
+    serif;
+  fill: #624020;
+  text-anchor: middle;
+}
+.xq-piece {
+  display: inline-block;
+  position: relative;
+  width: 44px;
+  aspect-ratio: 1;
+  vertical-align: middle;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.xq-piece > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+.xq-square {
+  position: absolute;
+  display: block;
+  width: 10.37%;
+  aspect-ratio: 1;
+  padding: 0;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+}
+.xq-square .xq-piece {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.xq-square:disabled {
+  opacity: 1;
+  cursor: default;
+  filter: none;
+}
+.xq-board .xq-square:hover:not(:disabled),
+.xq-board .xq-square:active:not(:disabled) {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
+}
+.xq-square.selected {
+  outline: 2px solid #226b54;
+  outline-offset: -3px;
+  background: #328d5629;
+}
+.xq-square:focus-visible {
+  outline: 2px dashed #153c6f;
+  outline-offset: 1px;
+}
+.xq-square.last-move:after,
+.xq-square.move-origin:after,
+.xq-square.hinted:after,
+.xq-square.in-check:after {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  border: 2px solid #ba7710;
+  border-radius: 5px;
+  pointer-events: none;
+}
+.xq-square.move-origin:after {
+  inset: 34%;
+  border-width: 1px;
+  opacity: 0.65;
+}
+.xq-square.hinted:after {
+  border-color: #006b8e;
+  border-style: dashed;
+}
+.xq-square.in-check:after {
+  border-color: #b51620;
+  box-shadow: 0 0 0 2px #ffd39c99;
+}
+.xq-move-target {
+  position: absolute;
+  inset: 39%;
+  border-radius: 50%;
+  background: #176244;
+  box-shadow: 0 0 0 2px #e8d2a966;
+  pointer-events: none;
+}
+.xq-capture-target {
+  position: absolute;
+  inset: 4%;
+  border: 3px solid #176244;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.xq-record-panel {
+  min-width: 0;
+  background: #f2e7cd;
+  border: 1px solid #948269;
+  color: #47392a;
+}
+.xq-record-toggle {
+  display: none;
+}
+.xq-history {
+  height: 238px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 8px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.8;
+  border-bottom: 1px solid #c4b18e;
+}
+.xq-history > li {
+  display: flex;
+  gap: 4px;
+  padding: 2px 0;
+}
+.xq-history > li > span {
+  min-width: 19px;
+  color: #8b7c67;
+}
+.xq-history .side-1 {
+  color: #96372b;
+}
+.xq-history .xq-history-empty {
+  color: #8a765a;
+  padding: 14px 2px;
+}
+.xq-captures {
+  padding: 8px;
+  border-bottom: 1px solid #c4b18e;
+}
+.xq-captures > strong {
+  font-size: 11px;
+  font-weight: normal;
+  color: #7a5e3e;
+}
+.xq-captures > div {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 30px;
+  align-items: center;
+  margin-top: 3px;
+}
+.xq-captures .xq-piece {
+  width: 27px;
+}
+.xq-captures small {
+  color: #9a8a73;
+}
+.xq-legend {
+  margin: 8px;
+  line-height: 1.8;
+  font-size: 10px;
+  color: #827154;
+}
+.xq-seats .xq-piece {
+  width: 40px;
+}
+.xq-draw-offer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 8px;
+  background: #f1dda4;
+  color: #654921;
+  font-size: 12px;
+}
+.xq-draw-offer span {
+  flex: 1;
+}
+.xq-practice-options {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+.xq-practice-options label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.xq-practice-options select {
+  padding: 3px 5px;
+}
+.xq-practice-options > span {
+  margin-left: auto;
+  color: #7a725f;
+}
+.xq-hint {
+  font-size: 11px;
+  color: #796446;
+  min-height: 18px;
+}
+.xq-practice-actions {
+  flex-wrap: wrap;
+}
+.xq-lobby-board {
+  pointer-events: none;
+}
+@container (max-width: 450px) {
+  .xq-position {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+  .xq-record-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .xq-record-panel > .pane-title,
+  .xq-history {
+    grid-column: 1 / -1;
+  }
+  .xq-history {
+    height: 74px;
+  }
+  .xq-legend {
+    grid-column: 1 / -1;
+    margin: 5px 8px;
+  }
+}
+@media (max-width: 650px) {
+  .xq-position {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+  .xq-record-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .xq-record-panel > .pane-title,
+  .xq-history {
+    grid-column: 1 / -1;
+  }
+  .xq-history {
+    height: 74px;
+  }
+  .xq-legend {
+    grid-column: 1 / -1;
+    margin: 5px 8px;
+  }
+  .xq-seats .seat-card {
+    padding: 5px;
+    gap: 4px;
+  }
+  .xq-seats .xq-piece {
+    width: 30px;
+  }
+  .xq-seats .seat-card small {
+    font-size: 9px;
+  }
+}

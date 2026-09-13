@@ -6,6 +6,15 @@ import type {
   User,
 } from "../../shared/protocol.ts";
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public retryAfter?: number,
+  ) {
+    super(message);
+  }
+}
 export async function api<T>(path: string, data?: unknown): Promise<T> {
   const response = await fetch(`/api/${path}`, {
     method: data === undefined ? "GET" : "POST",
@@ -14,7 +23,12 @@ export async function api<T>(path: string, data?: unknown): Promise<T> {
     body: data === undefined ? undefined : JSON.stringify(data),
   });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error ?? "连接失败，请稍后重试");
+  if (!response.ok)
+    throw new ApiError(
+      result.error ?? "连接失败，请稍后重试",
+      response.status,
+      result.retryAfter,
+    );
   return result;
 }
 let boot: Promise<{ user: User }> | undefined;
@@ -29,7 +43,7 @@ export function enterHall() {
       });
   return boot;
 }
-export function useHall(user: User | null, expired: () => void) {
+export function useHall(user: User | null, expired: () => void, revision = 0) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [status, setStatus] = useState<"connecting" | "connected" | "offline">(
     "connecting",
@@ -37,6 +51,7 @@ export function useHall(user: User | null, expired: () => void) {
   const [error, setError] = useState("");
   const socket = useRef<WebSocket | null>(null),
     onExpired = useRef(expired);
+  const listeners = useRef(new Set<(event: ServerEvent) => void>());
   onExpired.current = expired;
   useEffect(() => {
     setSnapshot(null);
@@ -65,6 +80,7 @@ export function useHall(user: User | null, expired: () => void) {
           const data = JSON.parse(event.data) as ServerEvent;
           if (data.type === "snapshot") setSnapshot(data);
           else if (data.type === "error") setError(data.message);
+          for (const listener of listeners.current) listener(data);
         } catch {
           setError("收到无法识别的服务器消息");
         }
@@ -87,19 +103,25 @@ export function useHall(user: User | null, expired: () => void) {
       socket.current?.close();
       socket.current = null;
     };
-  }, [user?.id]);
-  const send = useCallback((command: Command) => {
+  }, [user?.id, revision]);
+  const send = useCallback((command: Command, quiet = false) => {
     if (socket.current?.readyState !== WebSocket.OPEN) {
-      setError("连接恢复中，请稍后再试");
+      if (!quiet) setError("连接恢复中，请稍后再试");
       return false;
     }
     socket.current.send(JSON.stringify(command));
     return true;
+  }, []);
+  const subscribe = useCallback((listener: (event: ServerEvent) => void) => {
+    listeners.current.add(listener);
+    return () => {
+      listeners.current.delete(listener);
+    };
   }, []);
   useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => setError(""), 5000);
     return () => clearTimeout(timer);
   }, [error]);
-  return { snapshot, status, error, setError, send };
+  return { snapshot, status, error, setError, send, subscribe };
 }

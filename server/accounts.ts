@@ -1,3 +1,4 @@
+import type { MahjongResult } from "../shared/mahjong.ts";
 import { DatabaseSync } from "node:sqlite";
 import {
   randomBytes,
@@ -131,6 +132,13 @@ export class Accounts {
         match_id TEXT NOT NULL REFERENCES card_results(id), seat INTEGER NOT NULL,
         user_id TEXT REFERENCES users(id) ON DELETE SET NULL, role TEXT NOT NULL,
         won INTEGER NOT NULL, score INTEGER NOT NULL, PRIMARY KEY(match_id,seat));`);
+    this.db.exec(`CREATE TABLE IF NOT EXISTS mahjong_results (
+      id TEXT PRIMARY KEY, kind TEXT NOT NULL, winner INTEGER, loser INTEGER,
+      reason TEXT NOT NULL, ended INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS mahjong_result_players (
+      match_id TEXT NOT NULL REFERENCES mahjong_results(id), seat INTEGER NOT NULL,
+      user_id TEXT REFERENCES users(id) ON DELETE SET NULL, outcome TEXT NOT NULL,
+      score INTEGER NOT NULL, PRIMARY KEY(match_id,seat));`);
     this.transaction(() => {
       const add = (table: string, name: string, definition: string) => {
         if (
@@ -625,6 +633,50 @@ export class Accounts {
           .prepare("UPDATE users SET losses=losses+1 WHERE id=?")
           .run(winner === black ? white : black);
       }
+    });
+  }
+  mahjongResult(
+    id: string,
+    players: { userId: string; won: boolean; lost: boolean; score: number }[],
+    result: MahjongResult,
+  ) {
+    this.transaction(() => {
+      const added = this.db
+        .prepare("INSERT OR IGNORE INTO mahjong_results VALUES(?,?,?,?,?,?)")
+        .run(
+          id,
+          result.kind,
+          result.winner,
+          result.loser,
+          result.reason,
+          this.now(),
+        );
+      if (!added.changes) return;
+      players.forEach((p, seat) => {
+        this.db
+          .prepare("INSERT INTO mahjong_result_players VALUES(?,?,?,?,?)")
+          .run(
+            id,
+            seat,
+            p.userId,
+            p.won
+              ? "win"
+              : p.lost
+                ? "loss"
+                : result.kind === "draw"
+                  ? "draw"
+                  : "neutral",
+            p.score,
+          );
+        if (p.won || p.lost)
+          this.db
+            .prepare(
+              p.won
+                ? "UPDATE users SET wins=wins+1 WHERE id=?"
+                : "UPDATE users SET losses=losses+1 WHERE id=?",
+            )
+            .run(p.userId);
+      });
     });
   }
   cardResult(

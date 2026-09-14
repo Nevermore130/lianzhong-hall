@@ -31,7 +31,11 @@ export function LobbyScene({
           <div
             className={
               "scene-table" +
-              (room.game === "doudizhu" ? " ddz-scene-table" : "")
+              (room.game === "doudizhu"
+                ? " ddz-scene-table"
+                : room.game === "mahjong"
+                  ? " mj-scene-table"
+                  : "")
             }
             key={room.id}
           >
@@ -52,17 +56,20 @@ export function LobbyScene({
               disabled={!connected}
               onClick={() => enter(room.id)}
             >
-              {room.game === "doudizhu" ? (
+              {room.game === "doudizhu" || room.game === "mahjong" ? (
                 <>
                   <img
                     className="table-sprite"
-                    src="/assets/doudizhu-v1/lobby-table.webp"
+                    src={`/assets/${room.game === "mahjong" ? "mahjong" : "doudizhu"}-v1/lobby-table.webp`}
                     alt=""
                     draggable={false}
                   />
                   {players.map((p, i) =>
                     p ? (
-                      <span key={i} className={"ddz-lobby-player seat-" + i}>
+                      <span
+                        key={i}
+                        className={`${room.game === "mahjong" ? "mj" : "ddz"}-lobby-player seat-${i}`}
+                      >
                         <PlayerPortrait avatar={p.avatar} />
                       </span>
                     ) : null,
@@ -82,12 +89,20 @@ export function LobbyScene({
               <span className={players[1] ? "online-gem" : "empty-gem"}>◆</span>
               {players[1]?.name ?? "等待加入"}
             </div>
-            {room.game === "doudizhu" && (
+            {(room.game === "doudizhu" || room.game === "mahjong") && (
               <div className="seat-name third">
                 <span className={players[2] ? "online-gem" : "empty-gem"}>
                   ◆
                 </span>
                 {players[2]?.name ?? "等待加入"}
+              </div>
+            )}
+            {room.game === "mahjong" && (
+              <div className="seat-name fourth">
+                <span className={players[3] ? "online-gem" : "empty-gem"}>
+                  ◆
+                </span>
+                {players[3]?.name ?? "等待加入"}
               </div>
             )}
             <div className="table-caption">
@@ -110,7 +125,7 @@ export function LobbyScene({
           <p>
             {available
               ? "请修改搜索条件，或创建新的游戏桌。"
-              : "当前已开放五子棋、中国象棋与斗地主，可从右侧房间列表进入。"}
+              : "当前已开放五子棋、中国象棋、斗地主与中国麻将，可从右侧房间列表进入。"}
           </p>
         </div>
       )}

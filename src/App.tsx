@@ -1,3 +1,6 @@
+import { MahjongRoomView } from "./components/MahjongRoomView";
+import { MahjongPractice } from "./components/MahjongPractice";
+import { MahjongRules } from "./components/MahjongRules";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -308,7 +311,7 @@ export default function App() {
         <>
           <div className="client-tabbar">
             <span className="announcement">
-              ◆ 已开放五子棋、中国象棋与斗地主，入座并准备后开始游戏。
+              ◆ 已开放五子棋、中国象棋、斗地主与中国麻将，入座并准备后开始游戏。
             </span>
             <div className="game-tabs" role="tablist" aria-label="游戏切换">
               {games.map((g) => (
@@ -437,7 +440,15 @@ export default function App() {
                 )}
                 {room && snapshot ? (
                   <div className="live-room-scroll">
-                    {room.game === "doudizhu" ? (
+                    {room.game === "mahjong" ? (
+                      <MahjongRoomView
+                        key={room.id}
+                        room={room}
+                        snapshot={snapshot}
+                        send={send}
+                        connected={connected}
+                      />
+                    ) : room.game === "doudizhu" ? (
                       <DoudizhuRoomView
                         room={room}
                         snapshot={snapshot}
@@ -517,11 +528,13 @@ export default function App() {
               　游戏桌：{snapshot?.rooms.length ?? 0}
             </span>
             <span>
-              {currentGame?.id === "doudizhu"
-                ? "斗地主 · 经典叫分"
-                : currentGame?.id === "xiangqi"
-                  ? "中国象棋 · 娱乐规则"
-                  : "五子棋 · 自由规则"}{" "}
+              {currentGame?.id === "mahjong"
+                ? "中国麻将 · 大众简化规则"
+                : currentGame?.id === "doudizhu"
+                  ? "斗地主 · 经典叫分"
+                  : currentGame?.id === "xiangqi"
+                    ? "中国象棋 · 娱乐规则"
+                    : "五子棋 · 自由规则"}{" "}
               <time>{time}</time>
             </span>
           </footer>
@@ -535,7 +548,9 @@ export default function App() {
         </div>
       )}
       {dialog === "practice" &&
-        (currentGame?.id === "doudizhu" ? (
+        (currentGame?.id === "mahjong" ? (
+          <MahjongPractice close={() => setDialog(null)} />
+        ) : currentGame?.id === "doudizhu" ? (
           <DoudizhuPractice close={() => setDialog(null)} />
         ) : currentGame?.id === "xiangqi" ? (
           <XiangqiPractice close={() => setDialog(null)} />
@@ -584,7 +599,11 @@ export default function App() {
               ) as string;
               const value = new FormData(event.currentTarget).get("game");
               const game =
-                value === "doudizhu" || value === "xiangqi" ? value : "gomoku";
+                value === "doudizhu" ||
+                value === "xiangqi" ||
+                value === "mahjong"
+                  ? value
+                  : "gomoku";
               if (send({ type: "create", name, game })) setDialog(null);
             }}
           >
@@ -608,6 +627,7 @@ export default function App() {
               >
                 <option value="gomoku">五子棋 · 双人自由规则</option>
                 <option value="xiangqi">中国象棋 · 双人对弈</option>
+                <option value="mahjong">中国麻将 · 四人大众规则</option>
                 <option value="doudizhu">斗地主 · 三人经典叫分</option>
               </select>
             </label>
@@ -621,7 +641,9 @@ export default function App() {
       {dialog === "help" && (
         <Modal title="游戏帮助" close={() => setDialog(null)}>
           <h2>游戏操作说明</h2>
-          {currentGame?.id === "doudizhu" ? (
+          {currentGame?.id === "mahjong" ? (
+            <MahjongRules />
+          ) : currentGame?.id === "doudizhu" ? (
             <ul className="ddz-rule-list">
               <li>
                 三人入座并准备，54 张牌，每人 17 张、底牌 3 张；叫分时底牌隐藏。
@@ -693,11 +715,11 @@ export default function App() {
             <ShieldCheck size={19} />
             <p>
               刷新可恢复座位与本人手牌。断线暂停操作，30
-              秒未返回则所在方判负；斗地主叫分阶段退出取消本局，不计战绩。
+              秒未返回则所在方判负；斗地主叫分阶段退出取消本局，不计战绩。麻将中途退出会中止本局，仅退出者记负。
             </p>
           </div>
           <p className="muted">
-            同一浏览器的多个标签页共享账号。多人对局需要独立浏览器、配置文件或设备。选择五子棋、象棋或斗地主后点击「单机游戏」即可练习。
+            同一浏览器的多个标签页共享账号。多人对局需要独立浏览器、配置文件或设备。选择五子棋、象棋、斗地主或麻将后点击「单机游戏」即可练习。
           </p>
           <button
             className="primary full-width"
@@ -726,11 +748,11 @@ export default function App() {
             </span>
             <span>
               <Check size={14} />
-              五子棋、象棋与斗地主联机、练习
+              五子棋、象棋、斗地主与麻将联机、练习
             </span>
             <span>
               <Sparkles size={14} />
-              更多经典棋牌筹备中
+              四款经典棋牌已开放
             </span>
           </div>
           <p className="muted">

@@ -1,0 +1,144 @@
+/* Only the video presentation, never imported by the live app. */
+.film-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 450px;
+  height: 800px;
+  transform: scale(2.4);
+  transform-origin: top left;
+  isolation: isolate;
+  overflow: hidden;
+  --visible-height: 800px;
+  --visible-top: 0px;
+  --mobile-compact-height: 32px;
+  --mobile-control-height: 36px;
+  --mobile-primary-height: 40px;
+}
+.film-world .game-client {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 450px !important;
+  height: 800px !important;
+}
+.film-world .film-dialog {
+  display: flex !important;
+  position: absolute !important;
+  flex-direction: column;
+  top: 6px !important;
+  bottom: auto !important;
+  left: 6px !important;
+  right: 6px !important;
+  margin: 0 !important;
+  width: 438px !important;
+  max-width: none !important;
+  max-height: 788px !important;
+  z-index: 30;
+  overflow: hidden;
+}
+.film-backdrop {
+  position: absolute;
+  inset: 0;
+  background: #18304440;
+  z-index: 29;
+}
+.film-world .film-dialog .dialog-body {
+  max-height: 744px;
+  min-height: 0;
+  overflow: hidden;
+  flex: 0 1 auto;
+}
+.film-world .ddz-practice-header,
+.film-world .mj-practice-header {
+  font-size: 12px;
+}
+.film-world .mj-hand-scroll,
+.film-world .ddz-hand-scroll {
+  scroll-behavior: auto !important;
+  scrollbar-width: none;
+}
+.film-world .mj-hand-scroll::-webkit-scrollbar,
+.film-world .ddz-hand-scroll::-webkit-scrollbar {
+  display: none;
+}
+.film-world * {
+  animation: none !important;
+  transition: none !important;
+  caret-color: transparent;
+  scroll-behavior: auto !important;
+}
+.film-world .xq-board {
+  max-width: 404px !important;
+  width: 100%;
+}
+.film-world .board-frame {
+  max-width: min(100%, max(280px, calc(100cqh - 220px)));
+}
+.film-world .chat-form input {
+  flex: 1;
+  min-width: 0;
+}
+.film-world .chat-messages {
+  flex: 1;
+  min-height: 0;
+}
+.film-pointer {
+  position: absolute;
+  width: 22px;
+  height: 30px;
+  overflow: visible;
+  z-index: 100;
+  filter: drop-shadow(1px 2px 1px #0007);
+  pointer-events: none;
+  transform-origin: top left;
+}
+.film-target {
+  position: absolute;
+  border: 1.5px solid #f5d565;
+  box-shadow: 0 0 0 1px #18252155;
+  z-index: 99;
+  pointer-events: none;
+}
+.film-click {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ffd85b;
+  border-radius: 50%;
+  z-index: 101;
+  pointer-events: none;
+}
+.film-subtitle {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: 173px;
+  padding: 20px 24px;
+  background: #07131ee6;
+  color: #fffdf4;
+  box-shadow: 0 2px 8px #0003;
+  text-align: center;
+  border-radius: 8px;
+  font:
+    600 42px/1.35 -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    sans-serif;
+  pointer-events: none;
+  z-index: 200;
+}
+.film-demo-note {
+  position: absolute;
+  left: 20px;
+  top: 12px;
+  padding: 3px 8px;
+  background: #000080;
+  color: #eee;
+  font:
+    20px/1.4 -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    sans-serif;
+  z-index: 150;
+  pointer-events: none;
+}

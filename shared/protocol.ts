@@ -1,3 +1,4 @@
+import type { MahjongAction, MahjongView } from "./mahjong.ts";
 import type { Board } from "./gomoku.ts";
 import type { DoudizhuView } from "./doudizhu.ts";
 import type { XiangqiState } from "./xiangqi.ts";
@@ -40,7 +41,7 @@ export const games: {
     name: "中国麻将",
     english: "MAHJONG",
     description: "东西南北，老友相聚",
-    available: false,
+    available: true,
     symbol: "發",
   },
 ];
@@ -83,7 +84,13 @@ export type XiangqiRoom = RoomBase & {
   seats: [Seat, Seat];
   match: XiangqiState | null;
 };
-export type Room<T = DoudizhuView> = GomokuRoom | XiangqiRoom | DoudizhuRoom<T>;
+export type MahjongRoom<T = MahjongView> = RoomBase & {
+  game: "mahjong";
+  seats: [Seat, Seat, Seat, Seat];
+  match: T | null;
+};
+export type Room<T = DoudizhuView, M = MahjongView> =
+  GomokuRoom | XiangqiRoom | DoudizhuRoom<T> | MahjongRoom<M>;
 export type Message = {
   id: string;
   name: string;
@@ -108,7 +115,7 @@ export type ServerEvent =
 export type Command =
   | { type: "join"; roomId: string }
   | { type: "leave" }
-  | { type: "sit"; seat: 0 | 1 | 2 }
+  | { type: "sit"; seat: 0 | 1 | 2 | 3 }
   | { type: "stand" }
   | { type: "ready" }
   | { type: "move"; index: number; matchId: string }
@@ -129,6 +136,12 @@ export type Command =
   | { type: "ddz:bid"; score: number; matchId: string; revision: number }
   | { type: "ddz:play"; cards: number[]; matchId: string; revision: number }
   | { type: "ddz:pass"; matchId: string; revision: number }
+  | {
+      type: "mj:action";
+      action: MahjongAction;
+      matchId: string;
+      revision: number;
+    }
   | { type: "resign" }
   | { type: "chat"; text: string; channel: ChatChannel; clientId: string }
   | { type: "create"; name: string; game: GameId };

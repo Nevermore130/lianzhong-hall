@@ -1,0 +1,27 @@
+{
+  "name": "retro-hall-interaction-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:video": "node scripts/prepare.mjs",
+    "studio": "npm run prepare:video && tsx scripts/make-audio.ts && remotion studio src/index.tsx --port 5190",
+    "check": "npm run prepare:video && tsc --noEmit && tsx scripts/check-story.ts",
+    "stills": "npm run prepare:video && tsx scripts/render.ts --stills",
+    "render": "npm run prepare:video && tsx scripts/render.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.524",
+    "@remotion/cli": "4.0.524",
+    "@remotion/renderer": "4.0.524",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.524"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.7.2"
+  }
+}

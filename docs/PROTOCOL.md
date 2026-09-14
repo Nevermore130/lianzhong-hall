@@ -42,20 +42,20 @@ Cookie：`hall_session`，HttpOnly、SameSite=Strict、7 天未续期失效，�
 
 命令精确定义见 `shared/protocol.ts`。没有任何命令接受客户端自报 userId。
 
-| type       | 其他字段                                       | 作用                                               |
-| ---------- | ---------------------------------------------- | -------------------------------------------------- |
-| `create`   | `name, game:'gomoku' / 'xiangqi' / 'doudizhu'` | 创建并进入房间；房间名 2–16 字；总房间上限 30      |
-| `join`     | `roomId`                                       | 旁观方式进房；每房观战席最多 20 人                 |
-| `leave`    | 无                                             | 离房；对局中的棋手离房判负                         |
-| `sit`      | `seat:0 或 1 或 2`                             | 五子棋 0 黑/1 白，象棋 0 红/1 黑；斗地主 0–2       |
-| `stand`    | 无                                             | 非对局状态站起                                     |
-| `ready`    | 无                                             | 切换准备；对应游戏全席在线且都准备后开局           |
-| `move`     | `index:0..224, matchId`                        | 本局落子；行优先索引                               |
-| `ddz:bid`  | `score:0..3,matchId,revision`                  | 0 不叫；正分必须高于当前叫分，3 分立即定地主       |
-| `ddz:play` | `cards:number[],matchId,revision`              | 出牌；必须持有全部牌、牌型合法且能压过上手         |
-| `ddz:pass` | `matchId,revision`                             | 不出；自由领出时不可不出                           |
-| `resign`   | 无                                             | 认输                                               |
-| `chat`     | `text,channel,clientId`                        | 大厅或当前房间消息；1–200 字，同账号间隔至少 800ms |
+| type       | 其他字段                                                   | 作用                                                            |
+| ---------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
+| `create`   | `name, game:'gomoku' / 'xiangqi' / 'doudizhu' / 'mahjong'` | 创建并进入房间；房间名 2–16 字；总房间上限 60                   |
+| `join`     | `roomId`                                                   | 旁观方式进房；每房观战席最多 20 人                              |
+| `leave`    | 无                                                         | 离房；对局中的棋手离房判负                                      |
+| `sit`      | `seat:0 / 1 / 2 / 3`                                       | 五子棋 0 黑/1 白，象棋 0 红/1 黑；斗地主 0–2；麻将 0–3 东南西北 |
+| `stand`    | 无                                                         | 非对局状态站起                                                  |
+| `ready`    | 无                                                         | 切换准备；对应游戏全席在线且都准备后开局                        |
+| `move`     | `index:0..224, matchId`                                    | 本局落子；行优先索引                                            |
+| `ddz:bid`  | `score:0..3,matchId,revision`                              | 0 不叫；正分必须高于当前叫分，3 分立即定地主                    |
+| `ddz:play` | `cards:number[],matchId,revision`                          | 出牌；必须持有全部牌、牌型合法且能压过上手                      |
+| `ddz:pass` | `matchId,revision`                                         | 不出；自由领出时不可不出                                        |
+| `resign`   | 无                                                         | 认输                                                            |
+| `chat`     | `text,channel,clientId`                                    | 大厅或当前房间消息；1–200 字，同账号间隔至少 800ms              |
 
 服务器事件：
 
@@ -75,7 +75,7 @@ type ServerEvent =
   | { type: "chat:error"; clientId: string; message: string };
 ```
 
-快照包含最近 80 条系统广播、大厅及当前房间各最近 50 条聊天与未读数、所有房间的公开对局状态，以及当前在线/暂时离线玩家。斗地主房间逐用户投影，只附上本人手牌。房间聊天不出现在其他房间或大厅玩家的快照中。用户名由服务端提供，界面用 React 文本渲染避免 HTML 注入。错误事件不修改棋局。
+快照包含最近 80 条系统广播、大厅及当前房间各最近 50 条聊天与未读数、所有房间的公开对局状态，以及当前在线/暂时离线玩家。斗地主与麻将房间逐用户投影，只附上本人手牌。房间聊天不出现在其他房间或大厅玩家的快照中。用户名由服务端提供，界面用 React 文本渲染避免 HTML 注入。错误事件不修改棋局。
 
 对局命令仍以新快照确认成功，没有独立 requestId/ACK；下一阶段考虑 schemaVersion 和增量事件。首次连接和重连保留完整快照通道。
 
@@ -150,3 +150,26 @@ type ChatSnapshot = { revision: number; hall: ChatPage; room: ChatPage | null };
 三个命令均校验席位、在线状态和精确对局版本；成功推进 revision，错误不改棋局。走棋自动撤销和棋请求。认输、离开、准备和翻转前端视角复用现有流程（翻转不发命令）。
 
 match 还包含 history（含被吃棋子和将军标记）、positions（用于重复判定）、lastMove、quietPlies、drawOffer、status、winner、reason；winner 为 1/2/draw/null。全盘为公开信息，旁观者可读棋谱但不可操作。将死和困毙均判负；重复长将/其他重复和棋及 120 步未吃子采用 README 中声明的娱乐规则。棋谱仅在原进程内恢复，结果摘要持久化。
+
+## 中国麻将状态与命令
+
+麻将房间 `game: "mahjong"`，四席位 `0/1/2/3` 分别为东/南/西/北。客户端 `match` 是 `MahjongView | null`；服务端持有完整 `MahjongState`，不可直接广播。
+
+所有麻将操作通过 `{type:"mj:action",matchId,revision,action}` 提交：
+
+| action    | 字段                                            | 说明                                                            |
+| --------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| `discard` | `tile:0..135`                                   | 打出自己持有的一张实体牌                                        |
+| `claim`   | `choice:chi/peng/gang/hu/pass, tiles?:number[]` | 对当前弃牌回应；吃碰杠的 tiles 来自本人 options，胡和过不带选牌 |
+| `kong`    | `tiles:number[]`                                | 四张为暗杠，一张为补杠，必须来自本人 kongs                      |
+| `hu`      | 无                                              | 本人摸牌后的自摸                                                |
+
+实体牌编号 0–135，`floor(tile/4)` 是牌种 0–33，同种四份：0–8 万、9–17 筒、18–26 条、27–30 东南西北、31 中、32 發、33 白。禁止用重复实体编号代替多张同牌。
+
+公开视图字段：`id/revision/status/phase/dealer/turn`；`hand` 仅本人，观众为空；`drawn` 仅摸牌者可见；`counts/remaining` 为手牌数量与牌墙余量；`melds` 为各家副露，对手暗杠在结束前 tiles 为空（显示四张背面）；`discards` 为按时间排列且未被吃碰杠拿走的弃牌；`lastDiscard/lastAction` 为最近动作。`options/kongs/canHu` 仅提供本人的合法选择，`claim` 只含出牌者、牌、类型与本人是否已回应，绝不包含他人的资格名单或回应内容。内部牌墙不下发。结束后通过 `revealed` 公开四家剩余手牌，点炮／抢杠胡牌通过 `result.winningTile` 单独显示。
+
+有效操作递增 revision，通过新快照确认；客户端等待期间锁住操作，5 秒未确认可重试。摸打、自摸和主动杠必须精确匹配版本。同一吃碰杠胡窗口内，各家的合法回应允许使用该窗口开启后、当前版本之前的 revision，使并发回应不会互相失效；重复回应、前一个窗口或另一局的旧请求仍会拒绝。收到新快照后解除发送中状态。
+
+四位均在线才可操作；仅下家可吃；所有有选项的玩家回应后按胡 > 碰／杠 > 吃裁定，同级按座位距离取最近者。补杠先移出手牌暂放公开区，待抢杠胡窗口结束后才升级原碰牌并补牌。原碰牌在被抢胡时保持三张，不提前泄露替补摸牌。
+
+`result.kind` 为 self-draw/discard/rob-kong/draw/forfeit，含 winner/loser（可为 null）、reason、可选 winningTile；scores 为四人娱乐分。计分与账号结果规则见 README。SQLite 使用对局 ID 保证结果只结算一次，四位结果与账号更新同事务。进行中局面仍在内存，服务重启不恢复。

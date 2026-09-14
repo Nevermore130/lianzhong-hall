@@ -133,7 +133,10 @@ test("two independent accounts complete a real websocket game; spectators and il
       );
     }
   }
-  assert.equal(state.rooms[0].match!.winner, 1);
+  assert.equal(
+    state.rooms[0].game === "gomoku" && state.rooms[0].match!.winner,
+    1,
+  );
   await black.state((s) => s.me.wins === 1);
   assert.equal(white.snapshot!.me.losses, 1);
   assert.equal(
@@ -141,7 +144,9 @@ test("two independent accounts complete a real websocket game; spectators and il
       .count,
     1,
   );
-  await spectator.state((s) => s.rooms[0].match?.winner === 1);
+  await spectator.state(
+    (s) => s.rooms[0].game === "gomoku" && s.rooms[0].match?.winner === 1,
+  );
   black.send({
     type: "chat",
     text: "这盘棋下得开心！",
@@ -239,7 +244,7 @@ test("API authentication, cookie flags, origin validation, logout invalidation, 
   });
   assert.match(auth.headers.getSetCookie()[0], /HttpOnly; SameSite=Strict/);
   const client = await app.connect(cookie);
-  await client.error({ type: "create", name: "无效游戏", game: "mahjong" });
+  await client.error({ type: "create", name: "无效游戏", game: "unknown" });
   await client.error({ type: "chat", text: "x".repeat(201) });
   await client.error(null);
   const close = new Promise<number>((resolve) =>

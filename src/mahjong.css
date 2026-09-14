@@ -1,0 +1,585 @@
+@import url("/assets/mahjong-v1/tile.css");
+
+.mj-game {
+  --mj-tile-width: 36px;
+  min-width: 0;
+  color: #263930;
+}
+.mj-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 6px 10px;
+  background: #e0dfd3;
+  border: 1px solid #9a9a88;
+  font-size: 12px;
+}
+.mj-status i {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: #8b9687;
+  border: 1px solid #536253;
+}
+.mj-status i.your-turn {
+  background: #45834c;
+  box-shadow: 0 0 0 2px #abc5a2;
+}
+.mj-status strong {
+  font-weight: 400;
+  flex: 1;
+}
+.mj-status > span {
+  color: #626551;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.mj-felt {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(130px, 1.4fr) minmax(
+      120px,
+      1fr
+    );
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 355px;
+  padding: 15px;
+  background: #184734 url("/assets/mahjong-v1/felt.webp") center/cover;
+  border: 8px ridge #745231;
+  box-shadow: inset 0 0 25px #08281da8;
+  color: #f5ebcb;
+}
+.mj-player {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #b9c6a44a;
+  background: #092d247d;
+  box-shadow: 0 1px 3px #102d285e;
+}
+.mj-player.active-player {
+  border-color: #d3bf7d;
+  box-shadow: inset 0 0 0 1px #b6a16566;
+}
+.mj-player-top {
+  grid-area: 1/2;
+}
+.mj-player-bottom {
+  grid-area: 3/2;
+}
+.mj-player-left {
+  grid-area: 2/1;
+}
+.mj-player-right {
+  grid-area: 2/3;
+}
+.mj-player-heading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.mj-player-heading .player-portrait {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+.mj-player-heading > div {
+  min-width: 0;
+}
+.mj-player-heading b {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.mj-player-heading small {
+  display: block;
+  font-size: 10px;
+  color: #d5d5b9;
+  margin-top: 3px;
+}
+.mj-wind {
+  font-family: serif;
+  font-size: 17px;
+  color: #e1cd94;
+  flex: none;
+}
+.mj-player > button {
+  color: #24382d;
+  width: 100%;
+  margin-top: 7px;
+  min-height: 28px;
+  font-size: 11px;
+}
+.mj-center {
+  grid-area: 2/2;
+  text-align: center;
+  font-size: 11px;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.mj-compass {
+  font-family: STKaiti, KaiTi, serif;
+  font-size: 32px;
+  line-height: 1;
+  color: #d2c89770;
+}
+.mj-center > small {
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.mj-center > small b {
+  color: #fff0bd;
+  font-size: 17px;
+}
+.mj-center > span {
+  color: #d9ddbc;
+  font-size: 10px;
+}
+.mj-center p {
+  line-height: 1.9;
+  color: #c1d2b8;
+}
+.mj-last-tile {
+  --mj-tile-width: 44px;
+  padding: 0 0 4px;
+}
+.mj-hidden-hand {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  --mj-tile-width: 12px;
+  margin: 8px 0 4px;
+}
+.mj-meld {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  --mj-tile-width: 18px;
+  margin-top: 7px;
+  padding-bottom: 3px;
+}
+.mj-meld > small {
+  font-size: 9px;
+  margin-right: 1px;
+}
+.mj-score {
+  display: block;
+  padding-top: 5px;
+  color: #ffe9a2;
+  font-weight: 700;
+  font-size: 12px;
+}
+.mj-action-log {
+  background: #e3e2d3;
+  border: 1px solid #999783;
+  border-top: 0;
+  padding: 5px 9px;
+  font-size: 11px;
+}
+.mj-hand-panel {
+  padding: 9px 11px;
+  background: linear-gradient(#dfdecd, #d0d0bd);
+  border: 1px solid #9e9e8b;
+  border-top: 0;
+}
+.mj-hand-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+}
+.mj-hand-title span {
+  color: #676d59;
+  font-size: 10px;
+}
+.mj-hand-scroll {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 16px 3px 12px;
+  scroll-padding: 3px;
+  overscroll-behavior-x: contain;
+  min-height: 82px;
+}
+.mj-game .mj-hand-tile {
+  display: block;
+  width: var(--mj-tile-width);
+  min-width: var(--mj-tile-width);
+  height: calc(var(--mj-tile-width) * 1.5);
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  outline-offset: 4px;
+  box-shadow: none;
+  flex: none;
+  border-radius: 3px;
+  touch-action: manipulation;
+}
+.mj-game .mj-hand-tile:disabled {
+  opacity: 1;
+  cursor: default;
+  filter: none;
+}
+.mj-hand-tile.drawn {
+  margin-left: 10px;
+}
+.mj-game .mj-hand-tile.selected {
+  transform: translateY(-8px);
+  outline: 2px solid #2e7154;
+  box-shadow: 0 0 0 4px #c4dbc2;
+}
+.mj-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 32px;
+}
+.mj-controls button {
+  min-height: 31px;
+  font-size: 12px;
+}
+.mj-controls .mj-hu {
+  color: #fff6d7;
+  background: #9b3028;
+  border-color: #d9927a #532a1d #532a1d #d9927a;
+}
+.mj-controls > span,
+.mj-notice {
+  font-size: 11px;
+  color: #5c6250;
+}
+.mj-notice {
+  margin: 6px 0 0;
+}
+.mj-spectator {
+  font-size: 12px;
+  text-align: center;
+  background: #e0dfcf;
+  padding: 9px;
+  margin: 0;
+}
+.mj-rivers,
+.mj-reveal,
+.mj-rules {
+  background: #e6e5d9;
+  border: 1px solid #a2a391;
+  border-top: 0;
+  font-size: 11px;
+}
+.mj-game summary {
+  cursor: pointer;
+  padding: 7px 9px;
+  min-height: 29px;
+}
+.mj-river-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 4px 10px 12px;
+}
+.mj-river-grid > div > div {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 7px;
+  --mj-tile-width: 20px;
+  row-gap: 9px;
+}
+.mj-reveal > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 9px 9px;
+}
+.mj-reveal > div > b {
+  flex: none;
+}
+.mj-reveal > div > div {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 7px;
+  --mj-tile-width: 25px;
+}
+.mj-winning-tile {
+  padding-left: 8px;
+}
+.mj-practice-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+.mj-practice-header span {
+  font-size: 11px;
+  color: #626558;
+}
+.retro-dialog .mj-felt {
+  min-height: 300px;
+}
+.retro-dialog:has(.mj-game) {
+  width: min(850px, calc(100vw - 24px));
+}
+.mj-scene-table .table-sprite {
+  object-fit: contain;
+}
+.mj-scene-table .seat-name.upper {
+  transform: none;
+  left: 8px;
+  top: 5px;
+  max-width: 85px;
+}
+.mj-scene-table .seat-name.third {
+  right: 4px;
+  top: 5px;
+  max-width: 85px;
+}
+.mj-scene-table .seat-name.lower {
+  left: auto;
+  right: 2px;
+  bottom: 29px;
+  max-width: 85px;
+}
+.mj-scene-table .seat-name.fourth {
+  left: 4px;
+  bottom: 29px;
+  max-width: 85px;
+}
+.mj-lobby-player {
+  position: absolute;
+  pointer-events: none;
+}
+.mj-scene-table .table-favorite {
+  top: 58px;
+  left: 4px;
+}
+.mj-lobby-player .player-portrait {
+  width: 25px;
+  height: 25px;
+  box-shadow: 1px 2px 2px #15292966;
+}
+.mj-lobby-player.seat-0 {
+  left: 23%;
+  top: 13%;
+}
+.mj-lobby-player.seat-1 {
+  right: 19%;
+  top: 53%;
+}
+.mj-lobby-player.seat-2 {
+  right: 23%;
+  top: 13%;
+}
+.mj-lobby-player.seat-3 {
+  left: 19%;
+  top: 53%;
+}
+@media (max-width: 600px) {
+  .mj-status {
+    gap: 5px;
+    padding: 6px;
+    font-size: 11px;
+  }
+  .mj-status > span {
+    display: none;
+  }
+  .mj-felt {
+    grid-template-columns: minmax(76px, 1fr) minmax(102px, 1.3fr) minmax(
+        76px,
+        1fr
+      );
+    gap: 6px;
+    padding: 8px;
+    border-width: 5px;
+    min-height: 318px;
+  }
+  .mj-player {
+    padding: 5px;
+  }
+  .mj-player-heading {
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .mj-player-heading .player-portrait {
+    width: 22px;
+    height: 22px;
+  }
+  .mj-player-heading > div {
+    flex-basis: 100%;
+  }
+  .mj-player-heading b {
+    font-size: 10px;
+  }
+  .mj-player-heading small {
+    font-size: 9px;
+  }
+  .mj-player-top .mj-player-heading,
+  .mj-player-bottom .mj-player-heading {
+    flex-wrap: nowrap;
+  }
+  .mj-player-top .mj-player-heading .player-portrait,
+  .mj-player-bottom .mj-player-heading .player-portrait {
+    display: none;
+  }
+  .mj-player-top .mj-player-heading > div,
+  .mj-player-bottom .mj-player-heading > div {
+    flex-basis: auto;
+  }
+  .mj-hidden-hand {
+    --mj-tile-width: 8px;
+    gap: 1px;
+  }
+  .mj-meld {
+    --mj-tile-width: 12px;
+    gap: 1px;
+    flex-wrap: wrap;
+  }
+  .mj-meld > small {
+    width: 100%;
+  }
+  .mj-last-tile {
+    --mj-tile-width: 38px;
+  }
+  .mj-compass {
+    font-size: 24px;
+  }
+  .mj-hand-panel {
+    padding: 8px;
+  }
+  .mj-hand-title {
+    flex-wrap: wrap;
+  }
+  .mj-game {
+    --mj-tile-width: 34px;
+  }
+  .mj-controls button {
+    min-height: 34px;
+    padding: 4px 10px;
+  }
+  .mj-river-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mj-rules .ddz-rule-list {
+    padding-left: 25px;
+    padding-right: 10px;
+  }
+  .mj-practice-header {
+    flex-wrap: wrap;
+  }
+}
+@media (min-width: 601px) and (max-height: 500px) and (orientation: landscape) {
+  .mj-game {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+  .mj-status {
+    grid-column: 1 / -1;
+  }
+  .mj-felt,
+  .retro-dialog .mj-felt {
+    grid-column: 1;
+    grid-row: 2 / 4;
+    min-height: 228px;
+    grid-template-columns: minmax(60px, 1fr) minmax(76px, 1.1fr) minmax(
+        60px,
+        1fr
+      );
+    padding: 6px;
+    gap: 5px;
+    border-width: 5px;
+  }
+  .mj-center {
+    gap: 4px;
+  }
+  .mj-compass {
+    display: none;
+  }
+  .mj-last-tile {
+    --mj-tile-width: 30px;
+  }
+  .mj-player {
+    padding: 4px;
+  }
+  .mj-player-heading .player-portrait {
+    display: none;
+  }
+  .mj-player-heading {
+    gap: 3px;
+  }
+  .mj-player-heading b {
+    font-size: 10px;
+  }
+  .mj-player-heading small {
+    font-size: 9px;
+  }
+  .mj-hidden-hand {
+    --mj-tile-width: 8px;
+    gap: 1px;
+    margin-top: 5px;
+  }
+  .mj-meld {
+    --mj-tile-width: 12px;
+    gap: 1px;
+    flex-wrap: wrap;
+  }
+  .mj-meld > small {
+    width: 100%;
+  }
+  .mj-hand-panel {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    padding: 8px;
+    --mj-tile-width: 32px;
+  }
+  .mj-hand-scroll {
+    display: grid;
+    grid-template-columns: repeat(7, var(--mj-tile-width));
+    gap: 12px 5px;
+    padding-top: 14px;
+    min-height: 0;
+  }
+  .mj-hand-tile.drawn {
+    margin-left: 3px;
+  }
+  .mj-hand-title {
+    flex-wrap: wrap;
+  }
+  .mj-hand-title span {
+    display: none;
+  }
+  .mj-controls {
+    gap: 4px;
+  }
+  .mj-controls button {
+    min-height: 30px;
+    padding: 4px 7px;
+  }
+  .mj-action-log,
+  .mj-rivers,
+  .mj-rules,
+  .mj-reveal,
+  .mj-spectator {
+    grid-column: 1 / -1;
+  }
+  .mj-action-log {
+    grid-row: 4;
+  }
+  .mj-practice-header {
+    display: none;
+  }
+  .mj-game:not(:has(.mj-hand-panel)) .mj-felt {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}

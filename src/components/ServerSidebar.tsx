@@ -16,6 +16,7 @@ export function ServerSidebar({
     "gomoku",
     "xiangqi",
     "doudizhu",
+    "mahjong",
   ]);
   const [selectedPlayer, setSelectedPlayer] = useState(""),
     [sort, setSort] = useState<"name" | "wins">("name");
@@ -180,7 +181,7 @@ export function ServerSidebar({
               </p>
             ))}
           <p className="system-rule">
-            五子棋、象棋两人，斗地主三人；全员准备后开始。
+            五子棋、象棋两人，斗地主三人，麻将四人；全员准备后开始。
           </p>
         </div>
       </section>

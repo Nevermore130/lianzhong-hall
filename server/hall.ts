@@ -1,3 +1,13 @@
+import {
+  createMahjong,
+  shuffleMahjong,
+  mahjongView,
+  advanceMahjong,
+  finishMahjong,
+  type MahjongState,
+  type MahjongSeat,
+  type MahjongAction,
+} from "../shared/mahjong.ts";
 import { randomUUID, randomInt } from "node:crypto";
 import { newBoard, placeStone, isWin } from "../shared/gomoku.ts";
 import type {
@@ -5,6 +15,7 @@ import type {
   GomokuRoom,
   XiangqiRoom,
   DoudizhuRoom,
+  MahjongRoom,
   User,
   Player,
   Message,
@@ -31,7 +42,7 @@ import {
   type CardAction,
 } from "../shared/doudizhu.ts";
 
-type Room = PublicRoom<DoudizhuState>;
+type Room = PublicRoom<DoudizhuState, MahjongState>;
 const dealCards = () => shuffleDeck(randomInt);
 
 function requireThat(condition: unknown, message: string): asserts condition {
@@ -60,6 +71,15 @@ export class Hall {
         name: `斗地主 ${String(i).padStart(2, "0")} 桌`,
         game: "doudizhu",
         seats: [null, null, null],
+        watchers: [],
+        match: null,
+      });
+    for (let i = 1; i <= 6; i++)
+      this.rooms.push({
+        id: this.chat.defaultRoomId(`mahjong-${i}`),
+        name: `麻将 ${String(i).padStart(2, "0")} 桌`,
+        game: "mahjong",
+        seats: [null, null, null, null],
         watchers: [],
         match: null,
       });
@@ -130,7 +150,14 @@ export class Hall {
                 ? doudizhuView(room.match, this.seat(room, user.id))
                 : null,
             }
-          : room,
+          : room.game === "mahjong"
+            ? {
+                ...room,
+                match: room.match
+                  ? mahjongView(room.match, this.seat(room, user.id))
+                  : null,
+              }
+            : room,
       ),
       messages: this.messages,
       chat: {
@@ -210,6 +237,29 @@ export class Hall {
         this.refreshUser(seat.userId);
       }
   }
+  finishTiles(room: MahjongRoom<MahjongState>, finished: MahjongState) {
+    requireThat(room.seats.every(Boolean) && finished.result, "对局席位异常");
+    const result = finished.result;
+    this.accounts.mahjongResult(
+      finished.id,
+      room.seats.map((seat, i) => ({
+        userId: seat!.userId,
+        won: result.winner === i,
+        lost:
+          result.kind === "self-draw"
+            ? i !== result.winner
+            : result.loser === i,
+        score: finished.scores[i],
+      })),
+      result,
+    );
+    room.match = finished;
+    for (const seat of room.seats)
+      if (seat) {
+        seat.ready = false;
+        this.refreshUser(seat.userId);
+      }
+  }
   forfeit(room: Room, seat: number, reason: string) {
     if (room.match?.status !== "playing") return;
     if (room.game === "gomoku") this.finish(room, seat === 0 ? 2 : 1, reason);
@@ -217,6 +267,16 @@ export class Hall {
       this.finishChess(
         room,
         finishXiangqi(room.match!, seat === 0 ? 2 : 1, reason),
+      );
+    else if (room.game === "mahjong")
+      this.finishTiles(
+        room,
+        finishMahjong(room.match!, {
+          kind: "forfeit",
+          winner: null,
+          loser: seat as MahjongSeat,
+          reason: `${reason}，本局中止；退出者记负，其他人不计胜负`,
+        }),
       );
     else {
       const state = room.match!;
@@ -289,7 +349,8 @@ export class Hall {
       requireThat(
         command.game === "gomoku" ||
           command.game === "doudizhu" ||
-          command.game === "xiangqi",
+          command.game === "xiangqi" ||
+          command.game === "mahjong",
         "这款游戏还在筹备中",
       );
       requireThat(
@@ -298,7 +359,7 @@ export class Hall {
           command.name.trim().length <= 16,
         "房间名需为 2–16 字",
       );
-      requireThat(this.rooms.length < 30, "房间已达上限，请使用现有房间");
+      requireThat(this.rooms.length < 60, "房间已达上限，请使用现有房间");
       requireThat(
         !player.roomId ||
           this.room(userId).match?.status !== "playing" ||
@@ -308,12 +369,17 @@ export class Hall {
       const room: Room = {
         id: this.chat.allocateRoomId(),
         name: command.name.trim(),
-        ...(command.game !== "doudizhu"
-          ? { game: command.game, seats: [null, null] as [null, null] }
-          : {
-              game: "doudizhu" as const,
-              seats: [null, null, null] as [null, null, null],
-            }),
+        ...(command.game === "mahjong"
+          ? {
+              game: "mahjong" as const,
+              seats: [null, null, null, null] as [null, null, null, null],
+            }
+          : command.game !== "doudizhu"
+            ? { game: command.game, seats: [null, null] as [null, null] }
+            : {
+                game: "doudizhu" as const,
+                seats: [null, null, null] as [null, null, null],
+              }),
         watchers: [],
         match: null,
       };
@@ -349,9 +415,10 @@ export class Hall {
       seat = this.seat(room, userId);
     if (command.type === "sit") {
       requireThat(
-        command.seat === 0 ||
-          command.seat === 1 ||
-          (room.game === "doudizhu" && command.seat === 2),
+        typeof command.seat === "number" &&
+          Number.isInteger(command.seat) &&
+          command.seat >= 0 &&
+          command.seat < room.seats.length,
         "席位不存在",
       );
       requireThat(room.match?.status !== "playing", "这桌正在对局，可以先观战");
@@ -384,6 +451,8 @@ export class Hall {
             dealCards(),
             randomInt(3) as CardSeat,
           );
+        else if (room.game === "mahjong")
+          room.match = createMahjong(randomUUID(), shuffleMahjong(randomInt));
         else if (room.game === "xiangqi")
           room.match = createXiangqi(randomUUID());
         else
@@ -450,6 +519,47 @@ export class Hall {
         if (next.status === "finished") this.finishChess(room, next);
         else room.match = next;
       }
+      return;
+    }
+    if (room.game === "mahjong") {
+      const state = room.match!;
+      requireThat(command.type === "mj:action", "这桌只接受中国麻将操作");
+      // Different players can answer the same discard concurrently. The claim
+      // boundary prevents an old response being applied to a subsequent discard.
+      const responding =
+        command.action &&
+        typeof command.action === "object" &&
+        "type" in command.action &&
+        command.action.type === "claim";
+      const sameClaim =
+        responding &&
+        state.claim &&
+        typeof command.revision === "number" &&
+        Number.isInteger(command.revision) &&
+        command.revision >= state.claim.openedAt &&
+        command.revision <= state.revision;
+      requireThat(
+        state.id === command.matchId &&
+          (state.revision === command.revision || sameClaim),
+        "牌局已更新，请根据当前手牌重新操作",
+      );
+      requireThat(
+        room.seats.every((s) => s && this.players.get(s.userId)?.online),
+        "有玩家暂时离线，等待重新连接",
+      );
+      requireThat(
+        command.action &&
+          typeof command.action === "object" &&
+          !Array.isArray(command.action),
+        "麻将操作格式不正确",
+      );
+      const next = advanceMahjong(
+        state,
+        seat as MahjongSeat,
+        command.action as MahjongAction,
+      );
+      if (next.status === "finished") this.finishTiles(room, next);
+      else room.match = next;
       return;
     }
     if (room.game === "doudizhu") {

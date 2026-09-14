@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "tileViewBox": [
+    0,
+    0,
+    100,
+    150
+  ],
+  "physicalTiles": 136,
+  "copiesPerType": 4,
+  "textures": [
+    {
+      "file": "tile-face.webp",
+      "width": 192,
+      "height": 288,
+      "role": "做旧牌面"
+    },
+    {
+      "file": "felt.webp",
+      "width": 768,
+      "height": 768,
+      "role": "绿毡桌布"
+    },
+    {
+      "file": "lobby-table.webp",
+      "width": 512,
+      "height": 512,
+      "role": "四人麻将桌椅"
+    }
+  ],
+  "glyphs": [
+    {
+      "type": 0,
+      "name": "1万",
+      "file": "glyphs/0.svg"
+    },
+    {
+      "type": 1,
+      "name": "2万",
+      "file": "glyphs/1.svg"
+    },
+    {
+      "type": 2,
+      "name": "3万",
+      "file": "glyphs/2.svg"
+    },
+    {
+      "type": 3,
+      "name": "4万",
+      "file": "glyphs/3.svg"
+    },
+    {
+      "type": 4,
+      "name": "5万",
+      "file": "glyphs/4.svg"
+    },
+    {
+      "type": 5,
+      "name": "6万",
+      "file": "glyphs/5.svg"
+    },
+    {
+      "type": 6,
+      "name": "7万",
+      "file": "glyphs/6.svg"
+    },
+    {
+      "type": 7,
+      "name": "8万",
+      "file": "glyphs/7.svg"
+    },
+    {
+      "type": 8,
+      "name": "9万",
+      "file": "glyphs/8.svg"
+    },
+    {
+      "type": 9,
+      "name": "1筒",
+      "file": "glyphs/9.svg"
+    },
+    {
+      "type": 10,
+      "name": "2筒",
+      "file": "glyphs/10.svg"
+    },
+    {
+      "type": 11,
+      "name": "3筒",
+      "file": "glyphs/11.svg"
+    },
+    {
+      "type": 12,
+      "name": "4筒",
+      "file": "glyphs/12.svg"
+    },
+    {
+      "type": 13,
+      "name": "5筒",
+      "file": "glyphs/13.svg"
+    },
+    {
+      "type": 14,
+      "name": "6筒",
+      "file": "glyphs/14.svg"
+    },
+    {
+      "type": 15,
+      "name": "7筒",
+      "file": "glyphs/15.svg"
+    },
+    {
+      "type": 16,
+      "name": "8筒",
+      "file": "glyphs/16.svg"
+    },
+    {
+      "type": 17,
+      "name": "9筒",
+      "file": "glyphs/17.svg"
+    },
+    {
+      "type": 18,
+      "name": "1条",
+      "file": "glyphs/18.svg"
+    },
+    {
+      "type": 19,
+      "name": "2条",
+      "file": "glyphs/19.svg"
+    },
+    {
+      "type": 20,
+      "name": "3条",
+      "file": "glyphs/20.svg"
+    },
+    {
+      "type": 21,
+      "name": "4条",
+      "file": "glyphs/21.svg"
+    },
+    {
+      "type": 22,
+      "name": "5条",
+      "file": "glyphs/22.svg"
+    },
+    {
+      "type": 23,
+      "name": "6条",
+      "file": "glyphs/23.svg"
+    },
+    {
+      "type": 24,
+      "name": "7条",
+      "file": "glyphs/24.svg"
+    },
+    {
+      "type": 25,
+      "name": "8条",
+      "file": "glyphs/25.svg"
+    },
+    {
+      "type": 26,
+      "name": "9条",
+      "file": "glyphs/26.svg"
+    },
+    {
+      "type": 27,
+      "name": "东风",
+      "file": "glyphs/27.svg"
+    },
+    {
+      "type": 28,
+      "name": "南风",
+      "file": "glyphs/28.svg"
+    },
+    {
+      "type": 29,
+      "name": "西风",
+      "file": "glyphs/29.svg"
+    },
+    {
+      "type": 30,
+      "name": "北风",
+      "file": "glyphs/30.svg"
+    },
+    {
+      "type": 31,
+      "name": "红中",
+      "file": "glyphs/31.svg"
+    },
+    {
+      "type": 32,
+      "name": "发财",
+      "file": "glyphs/32.svg"
+    },
+    {
+      "type": 33,
+      "name": "白板",
+      "file": "glyphs/33.svg"
+    }
+  ],
+  "tileStyle": "tile.css",
+  "preview": "preview.html",
+  "source": "assets/source/mahjong-v1/PROMPTS.md",
+  "rebuild": "node scripts/build-mahjong-assets.mjs"
+}

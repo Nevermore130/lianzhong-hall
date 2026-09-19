@@ -115,16 +115,37 @@ ls -lh dist/
 
 ### 5. 配置环境变量
 
-编辑 systemd 服务文件（见下文）或创建 `/opt/lianzhong-hall/.env.production`：
+**推荐方式**: 创建 `/opt/lianzhong-hall/.env` 文件（或 `$INSTALL_DIR/.env`）配置所有环境变量。
+
+```bash
+# 创建 .env 文件
+sudo nano /opt/lianzhong-hall/.env
+```
+
+示例配置：
+
+```bash
+NODE_ENV=production
+APP_ORIGIN=http://203.0.113.10
+MAIL_MODE=disabled
+
+# 启用 SMTP 时配置:
+# MAIL_MODE=smtp
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_FROM=Game Hall <noreply@example.com>
+# SMTP_USER=your-email@example.com
+# SMTP_PASSWORD=your-password
+```
 
 | 变量                    | 必填 | 说明                                                                                      | 示例值                          |
 | ----------------------- | ---- | ----------------------------------------------------------------------------------------- | ------------------------------- |
 | `NODE_ENV`              | 是   | 设置为 `production`                                                                       | `production`                    |
+| `APP_ORIGIN`            | 是   | **浏览器访问的完整 Origin**，用于同源检查和邮件链接。HTTPS 时必须为 https，否则 http     | `https://yourdomain.com` 或 `http://203.0.113.10` |
+| `MAIL_MODE`             | 否   | 邮件模式：`disabled`(默认) / `smtp` / `local`(仅开发)                                     | `disabled` 或 `smtp`            |
 | `PORT`                  | 否   | 后端监听端口                                                                              | `3088` (默认)                   |
 | `HOST`                  | 否   | 监听地址，必须为 `127.0.0.1`                                                              | `127.0.0.1` (默认)              |
 | `DATABASE_PATH`         | 否   | SQLite 文件路径                                                                           | `data/hall.sqlite` (默认)       |
-| `APP_ORIGIN`            | 是   | **浏览器访问的完整 Origin**，用于同源检查和邮件链接。HTTPS 时必须为 https，否则 http     | `https://yourdomain.com` 或 `http://203.0.113.10` |
-| `MAIL_MODE`             | 否   | 邮件模式：`disabled`(默认) / `smtp` / `local`(仅开发)                                     | `disabled` 或 `smtp`            |
 | `SMTP_HOST`             | SMTP | SMTP 服务器地址                                                                           | `smtp.gmail.com`                |
 | `SMTP_PORT`             | SMTP | SMTP 端口（465=TLS, 587/其他=STARTTLS）                                                   | `587`                           |
 | `SMTP_FROM`             | SMTP | 发件人地址                                                                                | `Game Hall <noreply@example.com>` |
@@ -132,10 +153,12 @@ ls -lh dist/
 | `SMTP_PASSWORD`         | SMTP | SMTP 密码                                                                                 | `your-app-password`             |
 
 **关键配置说明**:
+- `.env` 为配置源，优先级高于 systemd 服务文件中的默认值
 - `APP_ORIGIN` 必须与浏览器实际访问地址的协议、域名/IP、端口完全一致
 - HTTPS 环境必须设置 `APP_ORIGIN=https://...`，此时会话 Cookie 自动添加 `Secure` 标志
 - HTTP 环境（如纯 IP 访问）必须设置 `APP_ORIGIN=http://...`，不会设置 `Secure`，WebSocket 才能正常工作
 - 生产环境默认 `MAIL_MODE=disabled`，未配置 SMTP 时绑定邮箱功能不可用
+- **不要在 systemd 服务文件中设置 `APP_ORIGIN`**，systemd 的 `Environment=` 会覆盖 `.env` 中的配置
 
 ### 6. 安装 Caddy
 
@@ -169,9 +192,9 @@ sudo nano /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
 
-配置 systemd 服务时设置：
+在 `.env` 中设置：
 ```bash
-Environment="APP_ORIGIN=http://203.0.113.10"  # 替换为你的服务器 IP
+APP_ORIGIN=http://203.0.113.10  # 替换为你的服务器 IP
 ```
 
 #### HTTPS 模式（推荐，需要域名）
@@ -197,9 +220,9 @@ sudo systemctl reload caddy
 sudo journalctl -u caddy -f
 ```
 
-配置 systemd 服务时设置：
+在 `.env` 中设置：
 ```bash
-Environment="APP_ORIGIN=https://yourdomain.com"  # 必须是 https
+APP_ORIGIN=https://yourdomain.com  # 必须是 https
 ```
 
 Caddy 会自动续期证书，无需手动干预。

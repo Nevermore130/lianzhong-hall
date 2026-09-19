@@ -7,20 +7,25 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/opt/lianzhong-hall
 
-# Load environment from .env file if present (optional)
+# Load environment from .env file (primary configuration source)
+# Install script adjusts path when INSTALL_DIR is customized
 EnvironmentFile=-/opt/lianzhong-hall/.env
 
-# Critical environment variables with fallback defaults
+# Safe fallback defaults (EnvironmentFile values take precedence)
 Environment="NODE_ENV=production"
 Environment="PORT=3088"
 Environment="HOST=127.0.0.1"
 Environment="DATABASE_PATH=data/hall.sqlite"
-Environment="APP_ORIGIN=http://YOUR_IP_OR_DOMAIN_HERE"
 Environment="MAIL_MODE=disabled"
 
-# For HTTPS with domain, set APP_ORIGIN=https://yourdomain.com in .env
-# For SMTP email, set MAIL_MODE=smtp and configure SMTP_* in .env
-# SMTP_HOST, SMTP_PORT, SMTP_FROM, SMTP_USER, SMTP_PASSWORD
+# Configure APP_ORIGIN in .env (required for production):
+#   - HTTPS: APP_ORIGIN=https://yourdomain.com
+#   - HTTP:  APP_ORIGIN=http://YOUR.SERVER.IP
+# Do NOT set APP_ORIGIN= here; systemd Environment= overrides EnvironmentFile=
+#
+# For SMTP email, set in .env:
+#   MAIL_MODE=smtp
+#   SMTP_HOST, SMTP_PORT, SMTP_FROM, SMTP_USER, SMTP_PASSWORD
 
 ExecStart=/usr/bin/npm start
 Restart=always

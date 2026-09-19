@@ -88,17 +88,39 @@ echo "✓ 构建完成"
 mkdir -p "$INSTALL_DIR/data"
 chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/data"
 
+# Create .env with APP_ORIGIN if provided
+if [ -n "$APP_ORIGIN" ]; then
+  echo "==> 创建 .env 配置..."
+  cat > "$INSTALL_DIR/.env" <<EOF
+# 生产环境配置
+NODE_ENV=production
+APP_ORIGIN=$APP_ORIGIN
+MAIL_MODE=disabled
+
+# 如需启用 SMTP 邮件，取消注释并配置:
+# MAIL_MODE=smtp
+# SMTP_HOST=smtp.example.com
+# SMTP_PORT=587
+# SMTP_FROM=Game Hall <noreply@example.com>
+# SMTP_USER=your-email@example.com
+# SMTP_PASSWORD=your-password
+EOF
+  chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env"
+  echo "✓ 已创建 .env 并设置 APP_ORIGIN=$APP_ORIGIN"
+else
+  echo "⚠ 未提供 APP_ORIGIN，请创建 $INSTALL_DIR/.env 并设置 APP_ORIGIN"
+fi
+
 # Install systemd service
 echo "==> 安装 systemd 服务..."
 if [ -f "$INSTALL_DIR/deploy/lianzhong-hall.service" ]; then
   cp "$INSTALL_DIR/deploy/lianzhong-hall.service" /etc/systemd/system/
   
-  # Update APP_ORIGIN if provided
-  if [ -n "$APP_ORIGIN" ]; then
-    sed -i "s|APP_ORIGIN=http://YOUR_IP_OR_DOMAIN_HERE|APP_ORIGIN=$APP_ORIGIN|" /etc/systemd/system/lianzhong-hall.service
-    echo "✓ 已设置 APP_ORIGIN=$APP_ORIGIN"
-  else
-    echo "⚠ 警告: 未设置 APP_ORIGIN，请手动编辑 /etc/systemd/system/lianzhong-hall.service"
+  # Adjust paths if INSTALL_DIR is not /opt/lianzhong-hall
+  if [ "$INSTALL_DIR" != "/opt/lianzhong-hall" ]; then
+    sed -i "s|WorkingDirectory=/opt/lianzhong-hall|WorkingDirectory=$INSTALL_DIR|" /etc/systemd/system/lianzhong-hall.service
+    sed -i "s|EnvironmentFile=-/opt/lianzhong-hall/.env|EnvironmentFile=-$INSTALL_DIR/.env|" /etc/systemd/system/lianzhong-hall.service
+    echo "✓ 已调整 systemd 服务路径为 $INSTALL_DIR"
   fi
   
   systemctl daemon-reload
@@ -127,7 +149,7 @@ mkdir -p /opt/lianzhong-backups
 chown "$SERVICE_USER:$SERVICE_USER" /opt/lianzhong-backups
 
 # Install backup cron job
-CRON_JOB="0 3 * * * sqlite3 /opt/lianzhong-hall/data/hall.sqlite \".backup /opt/lianzhong-backups/hall-\$(date +\\%Y\\%m\\%d).sqlite\" && find /opt/lianzhong-backups -name 'hall-*.sqlite' -mtime +30 -delete"
+CRON_JOB="0 3 * * * sqlite3 $INSTALL_DIR/data/hall.sqlite \".backup /opt/lianzhong-backups/hall-\$(date +\\%Y\\%m\\%d).sqlite\" && find /opt/lianzhong-backups -name 'hall-*.sqlite' -mtime +30 -delete"
 (sudo -u "$SERVICE_USER" crontab -l 2>/dev/null || true; echo "$CRON_JOB") | sudo -u "$SERVICE_USER" crontab -
 echo "✓ 每日备份任务已配置 (凌晨3点，保留30天)"
 
@@ -135,7 +157,9 @@ echo ""
 echo "==> 安装完成！"
 echo ""
 echo "后续步骤:"
-echo "1. 编辑 /etc/systemd/system/lianzhong-hall.service 配置环境变量"
+if [ -z "$APP_ORIGIN" ]; then
+  echo "1. 创建 $INSTALL_DIR/.env 并设置 APP_ORIGIN（必须）"
+fi
 echo "2. 选择并配置 Caddyfile (HTTP 或 HTTPS)"
 echo "3. 配置防火墙: sudo ufw allow 22/tcp && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw enable"
 echo "4. 启动服务: sudo systemctl start lianzhong-hall"

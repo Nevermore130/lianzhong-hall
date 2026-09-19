@@ -7,10 +7,11 @@ import {
   shuffleDeck,
   type CardAction,
 } from "../../shared/doudizhu.ts";
+import { generateUUID } from "../lib/uuid";
 import { DoudizhuTable } from "./DoudizhuTable";
 import { Modal } from "./Modal";
 const deck = () => shuffleDeck((max) => Math.floor(Math.random() * max));
-const start = () => createDoudizhu(crypto.randomUUID(), deck());
+const start = () => createDoudizhu(generateUUID(), deck());
 const players = [
   { name: "你", avatar: 0, online: true, ready: true },
   { name: "电脑 · 小梅", avatar: 1, online: true, ready: true },

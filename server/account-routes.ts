@@ -55,8 +55,9 @@ export function createAccountRoutes({
 }) {
   const attempts = new Map<string, { count: number; since: number }>();
   const pending = new Set<Promise<void>>();
+  // Only set Secure flag when serving over HTTPS; browsers reject Secure cookies on plain HTTP
   const cookie = (token: string, age = 604800) =>
-    `hall_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
+    `hall_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${linkOrigin.startsWith("https:") ? "; Secure" : ""}`;
   const notify = () => setImmediate(onChange);
   const origin = new URL(linkOrigin).origin;
   const deliver = async (

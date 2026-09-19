@@ -1,0 +1,33 @@
+# HTTP-only configuration for IP-based access (interim deployment)
+# Replace YOUR_IP_HERE with your server's public IP address
+# WARNING: WebSocket requires Secure cookies disabled (APP_ORIGIN must be http://)
+
+:80 {
+	# Replace with your actual IP
+	# bind YOUR_IP_HERE
+
+	# Reverse proxy to Node.js backend
+	reverse_proxy 127.0.0.1:3088 {
+		# Preserve original headers for same-origin checks
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Logging
+	log {
+		output file /var/log/caddy/lianzhong-access.log
+	}
+
+	# GZIP compression
+	encode gzip
+
+	# Security headers (except HSTS since we're on HTTP)
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		-Server
+	}
+}

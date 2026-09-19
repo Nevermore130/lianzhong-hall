@@ -1,0 +1,31 @@
+[Unit]
+Description=Lianzhong Game Hall
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/lianzhong-hall
+Environment="NODE_ENV=production"
+Environment="PORT=3088"
+Environment="HOST=127.0.0.1"
+Environment="DATABASE_PATH=/opt/lianzhong-hall/data/hall.sqlite"
+Environment="APP_ORIGIN=http://YOUR_IP_OR_DOMAIN_HERE"
+Environment="MAIL_MODE=disabled"
+# For HTTPS with domain, set APP_ORIGIN=https://yourdomain.com
+# For SMTP email, set MAIL_MODE=smtp and configure SMTP_* variables
+# Environment="SMTP_HOST=smtp.example.com"
+# Environment="SMTP_PORT=587"
+# Environment="SMTP_FROM=Game Hall <noreply@example.com>"
+# Environment="SMTP_USER=your_user"
+# Environment="SMTP_PASSWORD=your_password"
+
+ExecStart=/usr/bin/node --loader tsx /opt/lianzhong-hall/server/index.ts
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lianzhong-hall
+
+[Install]
+WantedBy=multi-user.target

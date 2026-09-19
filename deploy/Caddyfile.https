@@ -1,0 +1,40 @@
+# HTTPS configuration with automatic TLS from Let's Encrypt
+# Replace yourdomain.com with your actual domain
+# Ensure DNS A/AAAA records point to your server IP before starting
+
+yourdomain.com {
+	# Automatic HTTPS via Let's Encrypt
+	# Caddy will request and renew certificates automatically
+
+	# Reverse proxy to Node.js backend
+	reverse_proxy 127.0.0.1:3088 {
+		# Preserve original headers for same-origin checks
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Logging
+	log {
+		output file /var/log/caddy/lianzhong-access.log
+	}
+
+	# GZIP compression
+	encode gzip
+
+	# Security headers
+	header {
+		# HSTS - tell browsers to always use HTTPS
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		-Server
+	}
+}
+
+# Optional: redirect www to non-www
+# www.yourdomain.com {
+# 	redir https://yourdomain.com{uri} permanent
+# }

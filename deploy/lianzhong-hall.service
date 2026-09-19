@@ -1,0 +1,38 @@
+[Unit]
+Description=Lianzhong Game Hall
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/lianzhong-hall
+
+# Load environment from .env file (primary configuration source)
+# Install script adjusts path when INSTALL_DIR is customized
+EnvironmentFile=-/opt/lianzhong-hall/.env
+
+# Safe fallback defaults (EnvironmentFile values take precedence)
+Environment="NODE_ENV=production"
+Environment="PORT=3088"
+Environment="HOST=127.0.0.1"
+Environment="DATABASE_PATH=data/hall.sqlite"
+Environment="MAIL_MODE=disabled"
+
+# Configure APP_ORIGIN in .env (required for production):
+#   - HTTPS: APP_ORIGIN=https://yourdomain.com
+#   - HTTP:  APP_ORIGIN=http://YOUR.SERVER.IP
+# Do NOT set APP_ORIGIN= here; systemd Environment= overrides EnvironmentFile=
+#
+# For SMTP email, set in .env:
+#   MAIL_MODE=smtp
+#   SMTP_HOST, SMTP_PORT, SMTP_FROM, SMTP_USER, SMTP_PASSWORD
+
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lianzhong-hall
+
+[Install]
+WantedBy=multi-user.target

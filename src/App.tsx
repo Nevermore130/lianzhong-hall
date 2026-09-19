@@ -203,7 +203,7 @@ export default function App() {
         <div className="client-caption">
           <span>
             <ToolbarIcon kind="home" />
-            联众游戏大厅 <small>游戏客户端 · 开发版</small>
+            众乐游戏大厅
           </span>
           <div className="caption-controls">
             <button
@@ -735,8 +735,8 @@ export default function App() {
           <div className="auth-icon">
             <Monitor size={29} />
           </div>
-          <h2>联众风格游戏大厅</h2>
-          <p>经典棋牌客户端界面的独立实现，与联众官方无关联。</p>
+          <h2>众乐游戏大厅</h2>
+          <p>独立棋牌游戏平台，与任何商业联众或 Lianzhong 平台无关联。</p>
           <div className="about-features">
             <span>
               <Check size={14} />

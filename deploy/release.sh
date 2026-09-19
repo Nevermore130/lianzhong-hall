@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Lianzhong Hall - Release/Update Script
+# Zhongle Game Hall - Release/Update Script
 # Usage: sudo -u ubuntu bash release.sh [git-ref]
 #
 # This script performs rolling updates:
@@ -27,7 +27,7 @@ fi
 
 cd "$INSTALL_DIR"
 
-echo "==> 联众游戏大厅 - 发布更新"
+echo "==> 众乐游戏大厅 - 发布更新"
 
 # Verify we're in a git repository
 if [ ! -d .git ]; then

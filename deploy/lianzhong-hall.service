@@ -1,5 +1,5 @@
 [Unit]
-Description=Lianzhong Game Hall
+Description=Zhongle Game Hall
 After=network.target
 
 [Service]

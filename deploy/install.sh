@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Lianzhong Hall - Initial Installation Script
+# Zhongle Game Hall - Initial Installation Script
 # Usage: sudo bash install.sh [REPO_URL] [APP_ORIGIN]
 #
 # Arguments:
@@ -31,7 +31,7 @@ APP_ORIGIN="${2:-}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/lianzhong-hall}"
 SERVICE_USER="ubuntu"
 
-echo "==> 联众游戏大厅 - 首次安装"
+echo "==> 众乐游戏大厅 - 首次安装"
 
 # Check Node.js version
 if command -v node &> /dev/null; then

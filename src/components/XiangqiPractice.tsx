@@ -10,10 +10,11 @@ import {
   type XiangqiSide,
   type XiangqiState,
 } from "../../shared/xiangqi.ts";
+import { generateUUID } from "../lib/uuid";
 import { Modal } from "./Modal";
 import { XiangqiPosition } from "./XiangqiPosition";
 export function XiangqiPractice({ close }: { close: () => void }) {
-  const [match, setMatch] = useState(() => createXiangqi(crypto.randomUUID()));
+  const [match, setMatch] = useState(() => createXiangqi(generateUUID()));
   const [previous, setPrevious] = useState<XiangqiState[]>([]),
     [side, setSide] = useState<XiangqiSide>(1),
     [depth, setDepth] = useState(2);
@@ -47,7 +48,7 @@ export function XiangqiPractice({ close }: { close: () => void }) {
   }, [match, side, depth, retry]);
   function reset(nextSide = side) {
     setSide(nextSide);
-    setMatch(createXiangqi(crypto.randomUUID()));
+    setMatch(createXiangqi(generateUUID()));
     setPrevious([]);
     setHint(null);
     setWorkerError(false);

@@ -6,6 +6,7 @@ import type {
 } from "../../shared/chat.ts";
 import type { Command, ServerEvent, User } from "../../shared/protocol.ts";
 import { confirmedOutbox, restoreOutbox } from "./chat-state";
+import { generateUUID } from "./uuid";
 
 export type ChatTransport = {
   send: (command: Command, quiet?: boolean) => boolean;
@@ -142,7 +143,7 @@ export function useChatOutbox(
   function sendMessage(channel: ChatChannel, text: string) {
     if (queue.current.length >= 50) return false;
     const message: OutgoingMessage = {
-      clientId: crypto.randomUUID(),
+      clientId: generateUUID(),
       channel,
       text: text.trim(),
       time: Date.now(),

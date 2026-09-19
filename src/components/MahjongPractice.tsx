@@ -7,11 +7,12 @@ import {
   shuffleMahjong,
   type MahjongAction,
 } from "../../shared/mahjong.ts";
+import { generateUUID } from "../lib/uuid";
 import { MahjongTable } from "./MahjongTable";
 import { Modal } from "./Modal";
 const start = () =>
   createMahjong(
-    crypto.randomUUID(),
+    generateUUID(),
     shuffleMahjong((max) => Math.floor(Math.random() * max)),
   );
 const players = [

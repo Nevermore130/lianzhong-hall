@@ -98,7 +98,7 @@ function Client({ t }: { t: number }) {
           <div className="client-caption">
             <span>
               <ToolbarIcon kind="home" />
-              联众游戏大厅 <small>游戏客户端 · 开发版</small>
+              众乐游戏大厅
             </span>
             <div className="caption-controls">
               <button>−</button>

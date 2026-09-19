@@ -24,6 +24,16 @@
 
 扩展方案：将房间状态持久化到数据库或 Redis 后才可支持多实例部署，当前版本尚未实现。
 
+### 安装路径
+
+部署脚本默认使用 `/opt/lianzhong-hall` 作为安装目录。如果你的现有部署使用其他路径（如 `/var/www/lianzhong-hall`），可通过环境变量覆盖：
+
+```bash
+INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
+```
+
+文档中的示例路径均为 `/opt/lianzhong-hall`，使用自定义路径时请相应调整 systemd 服务配置中的 `WorkingDirectory`。
+
 ## 推荐部署环境
 
 ### 服务器配置
@@ -113,7 +123,7 @@ ls -lh dist/
 | `PORT`                  | 否   | 后端监听端口                                                                              | `3088` (默认)                   |
 | `HOST`                  | 否   | 监听地址，必须为 `127.0.0.1`                                                              | `127.0.0.1` (默认)              |
 | `DATABASE_PATH`         | 否   | SQLite 文件路径                                                                           | `data/hall.sqlite` (默认)       |
-| `APP_ORIGIN`            | 是   | **浏览器访问的完整 Origin**，用于同源检查和邮件链接。HTTPS 时必须为 https，否则 http     | `https://yourdomain.com` 或 `http://43.160.228.187` |
+| `APP_ORIGIN`            | 是   | **浏览器访问的完整 Origin**，用于同源检查和邮件链接。HTTPS 时必须为 https，否则 http     | `https://yourdomain.com` 或 `http://203.0.113.10` |
 | `MAIL_MODE`             | 否   | 邮件模式：`disabled`(默认) / `smtp` / `local`(仅开发)                                     | `disabled` 或 `smtp`            |
 | `SMTP_HOST`             | SMTP | SMTP 服务器地址                                                                           | `smtp.gmail.com`                |
 | `SMTP_PORT`             | SMTP | SMTP 端口（465=TLS, 587/其他=STARTTLS）                                                   | `587`                           |
@@ -161,7 +171,7 @@ sudo systemctl reload caddy
 
 配置 systemd 服务时设置：
 ```bash
-Environment="APP_ORIGIN=http://43.160.228.187"  # 替换为你的 IP
+Environment="APP_ORIGIN=http://203.0.113.10"  # 替换为你的服务器 IP
 ```
 
 #### HTTPS 模式（推荐，需要域名）
@@ -260,10 +270,10 @@ sudo systemctl status caddy
 sudo journalctl -u lianzhong-hall -f
 
 # 本地健康检查
-curl http://127.0.0.1:3088/api/auth/config
+curl http://127.0.0.1:3088/api/health
 
 # 浏览器访问测试
-# HTTP: http://43.160.228.187
+# HTTP: http://203.0.113.10
 # HTTPS: https://yourdomain.com
 ```
 
@@ -376,8 +386,8 @@ sudo systemctl start lianzhong-hall
 ### 基础健康检查
 
 ```bash
-# 接口健康检查（返回邮件配置）
-curl http://127.0.0.1:3088/api/auth/config
+# 接口健康检查（返回 {"ok":true}）
+curl http://127.0.0.1:3088/api/health
 
 # WebSocket 快速测试（使用浏览器开发者工具）
 # 1. 打开浏览器访问站点
@@ -443,7 +453,7 @@ du -sh /opt/lianzhong-hall/data/
 
 **解决方案**:
 1. 确认 `APP_ORIGIN` 与浏览器访问地址的协议一致
-2. HTTP 临时部署：`APP_ORIGIN=http://43.160.228.187`
+2. HTTP 临时部署：`APP_ORIGIN=http://YOUR.SERVER.IP`
 3. HTTPS 正式部署：`APP_ORIGIN=https://yourdomain.com`
 4. 修改后重启服务：`sudo systemctl restart lianzhong-hall`
 5. 清除浏览器 Cookie 后重新登录

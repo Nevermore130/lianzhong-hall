@@ -6,21 +6,23 @@ After=network.target
 Type=simple
 User=ubuntu
 WorkingDirectory=/opt/lianzhong-hall
+
+# Load environment from .env file if present (optional)
+EnvironmentFile=-/opt/lianzhong-hall/.env
+
+# Critical environment variables with fallback defaults
 Environment="NODE_ENV=production"
 Environment="PORT=3088"
 Environment="HOST=127.0.0.1"
-Environment="DATABASE_PATH=/opt/lianzhong-hall/data/hall.sqlite"
+Environment="DATABASE_PATH=data/hall.sqlite"
 Environment="APP_ORIGIN=http://YOUR_IP_OR_DOMAIN_HERE"
 Environment="MAIL_MODE=disabled"
-# For HTTPS with domain, set APP_ORIGIN=https://yourdomain.com
-# For SMTP email, set MAIL_MODE=smtp and configure SMTP_* variables
-# Environment="SMTP_HOST=smtp.example.com"
-# Environment="SMTP_PORT=587"
-# Environment="SMTP_FROM=Game Hall <noreply@example.com>"
-# Environment="SMTP_USER=your_user"
-# Environment="SMTP_PASSWORD=your_password"
 
-ExecStart=/usr/bin/node --loader tsx /opt/lianzhong-hall/server/index.ts
+# For HTTPS with domain, set APP_ORIGIN=https://yourdomain.com in .env
+# For SMTP email, set MAIL_MODE=smtp and configure SMTP_* in .env
+# SMTP_HOST, SMTP_PORT, SMTP_FROM, SMTP_USER, SMTP_PASSWORD
+
+ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=10
 StandardOutput=journal

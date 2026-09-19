@@ -2,24 +2,33 @@
 set -euo pipefail
 
 # Lianzhong Hall - Initial Installation Script
-# Usage: sudo bash install.sh [APP_ORIGIN]
+# Usage: sudo bash install.sh [REPO_URL] [APP_ORIGIN]
+#
+# Arguments:
+#   REPO_URL    - Git repository URL (default: https://github.com/Nevermore130/lianzhong-hall.git)
+#   APP_ORIGIN  - Browser-facing origin for cookies (default: http://YOUR.SERVER.IP)
 #
 # This script performs first-time setup:
 # - Installs Node.js 24+ if not present
-# - Clones the repository to /opt/lianzhong-hall
+# - Clones the repository to /opt/lianzhong-hall (or $INSTALL_DIR if set)
 # - Installs dependencies and builds the app
-# - Sets up systemd service (requires manual env var configuration)
-# - Installs and configures Caddy (requires manual Caddyfile selection)
+# - Sets up systemd service
+# - Installs Caddy and documents next steps
+# - Configures daily backup cron job
 #
-# Example: sudo bash install.sh http://43.160.228.187
+# Examples:
+#   sudo bash install.sh
+#   sudo bash install.sh https://github.com/yourusername/lianzhong-hall.git http://203.0.113.10
+#   INSTALL_DIR=/var/www/lianzhong-hall sudo bash install.sh
 
 if [ "$EUID" -ne 0 ]; then
   echo "错误: 请使用 sudo 运行此脚本"
   exit 1
 fi
 
-APP_ORIGIN="${1:-}"
-INSTALL_DIR="/opt/lianzhong-hall"
+REPO_URL="${1:-https://github.com/Nevermore130/lianzhong-hall.git}"
+APP_ORIGIN="${2:-}"
+INSTALL_DIR="${INSTALL_DIR:-/opt/lianzhong-hall}"
 SERVICE_USER="ubuntu"
 
 echo "==> 联众游戏大厅 - 首次安装"
@@ -56,7 +65,7 @@ else
   echo "✓ Caddy 已安装"
 fi
 
-# Clone or update repository
+# Clone repository
 if [ -d "$INSTALL_DIR" ]; then
   echo "! 目录 $INSTALL_DIR 已存在"
   echo "如需全新安装，请先删除该目录: sudo rm -rf $INSTALL_DIR"
@@ -64,14 +73,10 @@ if [ -d "$INSTALL_DIR" ]; then
 fi
 
 echo "==> 克隆代码库到 $INSTALL_DIR..."
-# Replace with your actual repository URL
-echo "请手动克隆代码库:"
-echo "  sudo git clone YOUR_REPO_URL $INSTALL_DIR"
-echo "  sudo chown -R $SERVICE_USER:$SERVICE_USER $INSTALL_DIR"
-exit 1
-# Uncomment and modify after setting up your repo:
-# git clone https://github.com/yourusername/lianzhong-hall.git "$INSTALL_DIR"
-# chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
+echo "仓库地址: $REPO_URL"
+git clone "$REPO_URL" "$INSTALL_DIR"
+chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
+echo "✓ 代码库克隆完成"
 
 echo "==> 安装依赖并构建..."
 cd "$INSTALL_DIR"
@@ -107,6 +112,9 @@ fi
 # Caddy configuration
 echo ""
 echo "==> 配置 Caddy"
+# Create Caddy log directory
+mkdir -p /var/log/caddy
+chown caddy:caddy /var/log/caddy
 echo "请选择配置模式:"
 echo "  HTTP (IP访问):  sudo cp $INSTALL_DIR/deploy/Caddyfile.http /etc/caddy/Caddyfile"
 echo "  HTTPS (域名):   sudo cp $INSTALL_DIR/deploy/Caddyfile.https /etc/caddy/Caddyfile"

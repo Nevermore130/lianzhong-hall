@@ -87,7 +87,7 @@ fi
 
 # Health check (basic)
 sleep 2
-if curl -sf http://127.0.0.1:3088/api/auth/config > /dev/null; then
+if curl -sf http://127.0.0.1:3088/api/health > /dev/null; then
   echo "✓ 健康检查通过"
 else
   echo "⚠ 健康检查失败，请检查服务状态"

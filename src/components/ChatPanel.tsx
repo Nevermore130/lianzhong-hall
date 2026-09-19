@@ -153,7 +153,7 @@ export function ChatPanel({
   const page = channel === "hall" ? snapshot?.hall : snapshot?.room;
   const unread = page?.channel === channel ? page.unread : 0;
   const latest = messages.at(-1)?.seq ?? 0;
-  const canUseChannel = channel === "hall" || channel === roomChannel;
+  const canUseChannel = channel === "hall" || (roomChannel !== null && channel === roomChannel);
   useLayoutEffect(() => {
     const element = viewport.current;
     if (!element) return;
@@ -251,7 +251,14 @@ export function ChatPanel({
   function submit(event: FormEvent) {
     event.preventDefault();
     const text = (drafts[channel] ?? "").trim();
-    if (!text || !canUseChannel) return;
+    if (!text) {
+      setError("请输入消息内容");
+      return;
+    }
+    if (!canUseChannel) {
+      setError("当前频道不可用，请切换到大厅或回到房间后再发送");
+      return;
+    }
     if (!box.sendMessage(channel, text)) {
       setError("待处理消息已达 50 条，请重试或移除旧消息后再发送");
       return;
@@ -450,7 +457,7 @@ export function ChatPanel({
         />
         <button
           type="submit"
-          disabled={!(drafts[channel] ?? "").trim() || !canUseChannel}
+          disabled={!(drafts[channel] ?? "").trim()}
         >
           发送
           <Send size={11} />

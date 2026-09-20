@@ -39,6 +39,11 @@ import {
   loadSoundSetting,
   saveSoundSetting,
 } from "./lib/sound";
+import {
+  BGMManager,
+  loadMusicSetting,
+  saveMusicSetting,
+} from "./lib/bgm";
 
 type Dialog =
   AuthMode | "account" | "create" | "help" | "about" | "practice" | null;
@@ -76,6 +81,7 @@ export default function App() {
     }
   });
   const [sound, setSound] = useState(loadSoundSetting),
+    [music, setMusic] = useState(loadMusicSetting),
     [minimized, setMinimized] = useState(false);
   const [now, setNow] = useState(new Date()),
     [busy, setBusy] = useState(false);
@@ -87,7 +93,8 @@ export default function App() {
     revision,
   );
   const inviteJoined = useRef(false),
-    soundManager = useRef(new SoundManager(loadSoundSetting()));
+    soundManager = useRef(new SoundManager(loadSoundSetting())),
+    bgmManager = useRef(new BGMManager(loadMusicSetting()));
   const room = snapshot?.rooms.find((r) => r.id === snapshot.roomId),
     me = snapshot?.me ?? user;
   const moveRevision =
@@ -123,6 +130,9 @@ export default function App() {
     soundManager.current.setEnabled(sound);
   }, [sound]);
   useEffect(() => {
+    bgmManager.current.setEnabled(music);
+  }, [music]);
+  useEffect(() => {
     if (sound && moveRevision !== null && moveRevision !== undefined)
       soundManager.current.play("place");
   }, [room?.match?.id, moveRevision, sound]);
@@ -134,6 +144,15 @@ export default function App() {
     if (next) {
       soundManager.current.unlock();
       soundManager.current.play("place");
+    }
+  }
+  function toggleMusic() {
+    const next = !music;
+    setMusic(next);
+    saveMusicSetting(next);
+    bgmManager.current.setEnabled(next);
+    if (next) {
+      bgmManager.current.unlock();
     }
   }
   function open(value: Dialog) {
@@ -412,6 +431,14 @@ export default function App() {
                     <span>{filteredRooms.length} 张游戏桌</span>
                     <button
                       className="sound-toggle"
+                      aria-label={music ? "关闭音乐" : "开启音乐"}
+                      onClick={toggleMusic}
+                      title={music ? "背景音乐已开启" : "背景音乐已关闭"}
+                    >
+                      🎵
+                    </button>
+                    <button
+                      className="sound-toggle"
                       aria-label={sound ? "关闭音效" : "开启音效"}
                       onClick={toggleSound}
                     >
@@ -429,6 +456,7 @@ export default function App() {
                         send={send}
                         connected={connected}
                         soundManager={soundManager.current}
+                        bgmManager={bgmManager.current}
                       />
                     ) : room.game === "doudizhu" ? (
                       <DoudizhuRoomView
@@ -437,6 +465,7 @@ export default function App() {
                         send={send}
                         connected={connected}
                         soundManager={soundManager.current}
+                        bgmManager={bgmManager.current}
                         key={room.id}
                       />
                     ) : room.game === "xiangqi" ? (
@@ -447,6 +476,7 @@ export default function App() {
                         send={send}
                         connected={connected}
                         soundManager={soundManager.current}
+                        bgmManager={bgmManager.current}
                       />
                     ) : (
                       <RoomView
@@ -456,6 +486,7 @@ export default function App() {
                         send={send}
                         connected={connected}
                         soundManager={soundManager.current}
+                        bgmManager={bgmManager.current}
                       />
                     )}
                   </div>
@@ -537,21 +568,25 @@ export default function App() {
           <MahjongPractice
             close={() => setDialog(null)}
             soundManager={soundManager.current}
+            bgmManager={bgmManager.current}
           />
         ) : currentGame?.id === "doudizhu" ? (
           <DoudizhuPractice
             close={() => setDialog(null)}
             soundManager={soundManager.current}
+            bgmManager={bgmManager.current}
           />
         ) : currentGame?.id === "xiangqi" ? (
           <XiangqiPractice
             close={() => setDialog(null)}
             soundManager={soundManager.current}
+            bgmManager={bgmManager.current}
           />
         ) : (
           <Practice
             close={() => setDialog(null)}
             soundManager={soundManager.current}
+            bgmManager={bgmManager.current}
           />
         ))}
       {dialog &&
@@ -758,6 +793,10 @@ export default function App() {
             账号和战绩保留，服务重启会清空房间与进行中的棋局。
           </p>
           <div className="dialog-actions">
+            <button onClick={toggleMusic}>
+              🎵 音乐
+              {music ? "已开启" : "已关闭"}
+            </button>
             <button onClick={toggleSound}>
               {sound ? <Volume2 size={14} /> : <VolumeX size={14} />}音效
               {sound ? "已开启" : "已关闭"}

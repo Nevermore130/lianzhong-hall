@@ -1,27 +1,36 @@
 import { ArrowLeft, Copy, Eye, Flag, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Command, GomokuRoom, Snapshot } from "../../shared/protocol.ts";
 import { newBoard } from "../../shared/gomoku.ts";
 import { Board } from "./Board";
 import { GomokuStone } from "./GomokuStone";
 import { Modal } from "./Modal";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm";
 export function RoomView({
   room,
   snapshot,
   send,
   connected,
+  bgmManager,
 }: {
   room: GomokuRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
   soundManager?: SoundManager;
+  bgmManager?: BGMManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false);
   const ownSeat = room.seats.findIndex((s) => s?.userId === snapshot.me.id),
     playing = room.match?.status === "playing";
+  useEffect(() => {
+    bgmManager?.play("gomoku");
+    return () => {
+      bgmManager?.stop();
+    };
+  }, [bgmManager]);
   const getPlayer = (id: string) => snapshot.players.find((p) => p.id === id);
   const bothOnline = room.seats.every((s) => s && getPlayer(s.userId)?.online);
   const myTurn =

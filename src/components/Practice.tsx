@@ -9,18 +9,27 @@ import {
 import { Board } from "./Board";
 import { Modal } from "./Modal";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm";
 export function Practice({
   close,
   soundManager,
+  bgmManager,
 }: {
   close: () => void;
   soundManager: SoundManager;
+  bgmManager: BGMManager;
 }) {
   const [board, setBoard] = useState(newBoard),
     [turn, setTurn] = useState<1 | 2>(1),
     [last, setLast] = useState<number | null>(null);
   const won = last !== null && isWin(board, last) ? board[last] : null,
     draw = !won && board.every(Boolean);
+  useEffect(() => {
+    bgmManager.play("gomoku");
+    return () => {
+      bgmManager.stop();
+    };
+  }, [bgmManager]);
   useEffect(() => {
     if (turn !== 2 || won || draw) return;
     const timer = setTimeout(() => {

@@ -14,12 +14,15 @@ import { generateUUID } from "../lib/uuid";
 import { Modal } from "./Modal";
 import { XiangqiPosition } from "./XiangqiPosition";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm";
 export function XiangqiPractice({
   close,
   soundManager,
+  bgmManager,
 }: {
   close: () => void;
   soundManager: SoundManager;
+  bgmManager: BGMManager;
 }) {
   const [match, setMatch] = useState(() => createXiangqi(generateUUID()));
   const [previous, setPrevious] = useState<XiangqiState[]>([]),
@@ -28,6 +31,12 @@ export function XiangqiPractice({
   const [hint, setHint] = useState<XiangqiAction | null>(null),
     [workerError, setWorkerError] = useState(false),
     [retry, setRetry] = useState(0);
+  useEffect(() => {
+    bgmManager.play("xiangqi");
+    return () => {
+      bgmManager.stop();
+    };
+  }, [bgmManager]);
   const myTurn = match.status === "playing" && match.turn === side;
   useEffect(() => {
     if (match.status !== "playing" || match.turn === side) return;

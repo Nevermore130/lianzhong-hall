@@ -1,26 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Command, DoudizhuRoom, Snapshot } from "../../shared/protocol.ts";
 import { DoudizhuTable } from "./DoudizhuTable";
 import { Modal } from "./Modal";
 import type { CardAction } from "../../shared/doudizhu.ts";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm";
 export function DoudizhuRoomView({
   room,
   snapshot,
   send,
   connected,
   soundManager,
+  bgmManager,
 }: {
   room: DoudizhuRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
   soundManager: SoundManager;
+  bgmManager?: BGMManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false);
   const ownSeat = room.seats.findIndex((s) => s?.userId === snapshot.me.id),
     active = room.match?.status === "playing";
+  useEffect(() => {
+    bgmManager?.play("doudizhu");
+    return () => {
+      bgmManager?.stop();
+    };
+  }, [bgmManager]);
   const players = room.seats.map((seat) => {
     const p = snapshot.players.find((p) => p.id === seat?.userId);
     return seat && p

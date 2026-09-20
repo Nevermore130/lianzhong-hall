@@ -11,6 +11,7 @@ import { generateUUID } from "../lib/uuid";
 import { DoudizhuTable } from "./DoudizhuTable";
 import { Modal } from "./Modal";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm.ts";
 const deck = () => shuffleDeck((max) => Math.floor(Math.random() * max));
 const start = () => createDoudizhu(generateUUID(), deck());
 const players = [
@@ -21,11 +22,19 @@ const players = [
 export function DoudizhuPractice({
   close,
   soundManager,
+  bgmManager,
 }: {
   close: () => void;
   soundManager: SoundManager;
+  bgmManager: BGMManager;
 }) {
   const [match, setMatch] = useState(start);
+  useEffect(() => {
+    bgmManager.play("doudizhu");
+    return () => {
+      bgmManager.stop();
+    };
+  }, [bgmManager]);
   useEffect(() => {
     if (match.status === "finished" || match.turn === 0) return;
     const timer = setTimeout(() => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Command, Snapshot, XiangqiRoom } from "../../shared/protocol.ts";
 import {
   createXiangqi,
@@ -10,22 +10,31 @@ import { XiangqiPiece } from "./XiangqiPiece";
 import { XiangqiPosition } from "./XiangqiPosition";
 import { Modal } from "./Modal";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm.ts";
 export function XiangqiRoomView({
   room,
   snapshot,
   send,
   connected,
+  bgmManager,
 }: {
   room: XiangqiRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
   soundManager?: SoundManager;
+  bgmManager?: BGMManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false),
     [flip, setFlip] = useState(false);
   const initial = useMemo(() => createXiangqi("waiting"), []);
+  useEffect(() => {
+    bgmManager?.play("xiangqi");
+    return () => {
+      bgmManager?.stop();
+    };
+  }, [bgmManager]);
   const match = room.match ?? initial,
     playing = room.match?.status === "playing";
   const ownSeat = room.seats.findIndex((s) => s?.userId === snapshot.me.id),

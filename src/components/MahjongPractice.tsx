@@ -11,6 +11,7 @@ import { generateUUID } from "../lib/uuid";
 import { MahjongTable } from "./MahjongTable";
 import { Modal } from "./Modal";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm.ts";
 const start = () =>
   createMahjong(
     generateUUID(),
@@ -25,11 +26,19 @@ const players = [
 export function MahjongPractice({
   close,
   soundManager,
+  bgmManager,
 }: {
   close: () => void;
   soundManager: SoundManager;
+  bgmManager: BGMManager;
 }) {
   const [match, setMatch] = useState(start);
+  useEffect(() => {
+    bgmManager.play("mahjong");
+    return () => {
+      bgmManager.stop();
+    };
+  }, [bgmManager]);
   useEffect(() => {
     const seat = ([1, 2, 3] as const).find((s) =>
       mahjongComputerAction(mahjongView(match, s), s),

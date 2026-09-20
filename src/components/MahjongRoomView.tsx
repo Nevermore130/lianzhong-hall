@@ -1,26 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Command, MahjongRoom, Snapshot } from "../../shared/protocol.ts";
 import { MahjongTable } from "./MahjongTable";
 import { Modal } from "./Modal";
 import type { MahjongAction } from "../../shared/mahjong.ts";
 import type { SoundManager } from "../lib/sound";
+import type { BGMManager } from "../lib/bgm";
 export function MahjongRoomView({
   room,
   snapshot,
   send,
   connected,
   soundManager,
+  bgmManager,
 }: {
   room: MahjongRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
   soundManager: SoundManager;
+  bgmManager?: BGMManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false);
   const ownSeat = room.seats.findIndex((s) => s?.userId === snapshot.me.id),
     active = room.match?.status === "playing";
+  useEffect(() => {
+    bgmManager?.play("mahjong");
+    return () => {
+      bgmManager?.stop();
+    };
+  }, [bgmManager]);
   const players = room.seats.map((seat) => {
     const p = snapshot.players.find((p) => p.id === seat?.userId);
     return seat && p

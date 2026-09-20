@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage } from "node:http";
-import { readFile } from "node:fs/promises";
+import { stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
 import { resolve, extname } from "node:path";
 import { WebSocketServer, WebSocket } from "ws";
 import { Accounts } from "./accounts.ts";
@@ -101,11 +102,37 @@ export function createHallServer({
         ".json": "application/json; charset=utf-8",
       };
       try {
-        const bytes = await readFile(path);
-        res.writeHead(200, {
+        const stats = await stat(path);
+        const headers: Record<string, string> = {
           "Content-Type": mime[extname(path)] ?? "application/octet-stream",
-        });
-        res.end(req.method === "HEAD" ? undefined : bytes);
+          "Content-Length": String(stats.size),
+        };
+        // Hashed assets under /assets/* get immutable long-term caching
+        if (url.pathname.startsWith("/assets/")) {
+          headers["Cache-Control"] = "public, max-age=31536000, immutable";
+        }
+        // Other static files (favicon, textures) get short cache
+        else if (
+          url.pathname.startsWith("/textures/") ||
+          url.pathname === "/favicon.svg"
+        ) {
+          headers["Cache-Control"] = "public, max-age=86400";
+        }
+        // HTML and other files get no-cache to ensure freshness
+        else {
+          headers["Cache-Control"] = "no-cache";
+        }
+        res.writeHead(200, headers);
+        if (req.method === "HEAD") {
+          res.end();
+        } else {
+          // Use streaming for better memory efficiency
+          const stream = createReadStream(path);
+          stream.pipe(res);
+          stream.on("error", () => {
+            if (!res.headersSent) json(res, 500, { error: "文件读取错误" });
+          });
+        }
       } catch {
         json(res, 404, { error: "页面不存在，请先 npm run build" });
       }

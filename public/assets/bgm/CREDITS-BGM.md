@@ -6,31 +6,39 @@
 
 ### fools-philosophy.ogg
 - **标题**: Fool's Philosophy
-- **作者**: Matthew Pablo
+- **作者**: iamoneabe (Aron Elal)
 - **许可**: CC0 (Public Domain)
 - **来源**: https://opengameart.org/content/fools-philosophy
+- **文件信息**: Ogg Vorbis, 立体声, 44.1 kHz, ~192 kbps, 2:42
 - **用途**: 五子棋、象棋等桌游背景音乐
+- **风格**: 可循环的东方风格 VGM BGM
 
 ### mahjongg-nes.ogg
 - **标题**: Mahjongg (NES) BGM
-- **作者**: FoxSynergy
+- **作者**: Spring Spring (FoxSynergy)
 - **许可**: CC0 (Public Domain)
 - **来源**: https://opengameart.org/content/mahjongg-nes-bgm
+- **文件信息**: Ogg Vorbis, 单声道, 44.1 kHz, ~96 kbps, 1.2 MB
 - **用途**: 麻将游戏背景音乐
+- **风格**: 使用 N163 芯片的 NES 风格麻将音乐
 
 ### cozy-puzzle.ogg
 - **标题**: Cozy Puzzle In-Game 2
-- **作者**: Beau Buckley
+- **作者**: MintoDog
 - **许可**: CC0 (Public Domain)
 - **来源**: https://opengameart.org/content/cozy-puzzle-in-game-2
+- **文件信息**: Ogg Vorbis, 立体声, 44.1 kHz, ~256 kbps, BPM 90
 - **用途**: 斗地主等牌类游戏背景音乐
+- **风格**: 舒适轻松的解谜游戏音乐，可循环播放
 
 ### magic-puzzle.ogg
 - **标题**: Magic Puzzle In-Game 1
-- **作者**: Beau Buckley
+- **作者**: MintoDog
 - **许可**: CC0 (Public Domain)
 - **来源**: https://opengameart.org/content/magic-puzzle-in-game-1
+- **文件信息**: Ogg Vorbis, 立体声, 44.1 kHz, ~192 kbps, BPM 110
 - **用途**: 备用背景音乐
+- **风格**: 魔幻风格的解谜游戏音乐，可循环播放
 
 ## CC0 许可说明
 

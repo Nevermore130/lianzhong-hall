@@ -3,16 +3,19 @@ import type { Command, DoudizhuRoom, Snapshot } from "../../shared/protocol.ts";
 import { DoudizhuTable } from "./DoudizhuTable";
 import { Modal } from "./Modal";
 import type { CardAction } from "../../shared/doudizhu.ts";
+import type { SoundManager } from "../lib/sound";
 export function DoudizhuRoomView({
   room,
   snapshot,
   send,
   connected,
+  soundManager,
 }: {
   room: DoudizhuRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
+  soundManager: SoundManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false);
@@ -27,11 +30,24 @@ export function DoudizhuRoomView({
   function action(a: CardAction) {
     if (!room.match) return false;
     const version = { matchId: room.match.id, revision: room.match.revision };
-    return a.type === "bid"
-      ? send({ type: "ddz:bid", score: a.score, ...version })
-      : a.type === "play"
-        ? send({ type: "ddz:play", cards: a.cards, ...version })
-        : send({ type: "ddz:pass", ...version });
+    const result =
+      a.type === "bid"
+        ? send({ type: "ddz:bid", score: a.score, ...version })
+        : a.type === "play"
+          ? send({ type: "ddz:play", cards: a.cards, ...version })
+          : send({ type: "ddz:pass", ...version });
+
+    if (result) {
+      if (a.type === "bid" && a.score > 0) {
+        soundManager.play("claim");
+      } else if (a.type === "play") {
+        soundManager.play("play");
+      } else if (a.type === "pass") {
+        soundManager.play("pass");
+      }
+    }
+
+    return result;
   }
   return (
     <section className="room-view ddz-room-view">

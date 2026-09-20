@@ -9,6 +9,7 @@ import {
 import { XiangqiPiece } from "./XiangqiPiece";
 import { XiangqiPosition } from "./XiangqiPosition";
 import { Modal } from "./Modal";
+import type { SoundManager } from "../lib/sound";
 export function XiangqiRoomView({
   room,
   snapshot,
@@ -19,6 +20,7 @@ export function XiangqiRoomView({
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
+  soundManager?: SoundManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false),

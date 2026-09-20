@@ -5,6 +5,7 @@ import { newBoard } from "../../shared/gomoku.ts";
 import { Board } from "./Board";
 import { GomokuStone } from "./GomokuStone";
 import { Modal } from "./Modal";
+import type { SoundManager } from "../lib/sound";
 export function RoomView({
   room,
   snapshot,
@@ -15,6 +16,7 @@ export function RoomView({
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
+  soundManager?: SoundManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false);

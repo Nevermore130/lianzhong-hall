@@ -8,7 +8,14 @@ import {
 } from "../../shared/gomoku.ts";
 import { Board } from "./Board";
 import { Modal } from "./Modal";
-export function Practice({ close }: { close: () => void }) {
+import type { SoundManager } from "../lib/sound";
+export function Practice({
+  close,
+  soundManager,
+}: {
+  close: () => void;
+  soundManager: SoundManager;
+}) {
   const [board, setBoard] = useState(newBoard),
     [turn, setTurn] = useState<1 | 2>(1),
     [last, setLast] = useState<number | null>(null);
@@ -22,9 +29,10 @@ export function Practice({ close }: { close: () => void }) {
       setBoard(placeStone(board, index, 2)!);
       setLast(index);
       setTurn(1);
+      soundManager.play("place");
     }, 450);
     return () => clearTimeout(timer);
-  }, [turn, board, won, draw]);
+  }, [turn, board, won, draw, soundManager]);
   function move(index: number) {
     if (turn !== 1 || won || draw) return;
     const next = placeStone(board, index, 1);
@@ -32,6 +40,7 @@ export function Practice({ close }: { close: () => void }) {
       setBoard(next);
       setLast(index);
       setTurn(2);
+      soundManager.play("place");
     }
   }
   return (

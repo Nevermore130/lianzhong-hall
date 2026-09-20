@@ -13,7 +13,14 @@ import {
 import { generateUUID } from "../lib/uuid";
 import { Modal } from "./Modal";
 import { XiangqiPosition } from "./XiangqiPosition";
-export function XiangqiPractice({ close }: { close: () => void }) {
+import type { SoundManager } from "../lib/sound";
+export function XiangqiPractice({
+  close,
+  soundManager,
+}: {
+  close: () => void;
+  soundManager: SoundManager;
+}) {
   const [match, setMatch] = useState(() => createXiangqi(generateUUID()));
   const [previous, setPrevious] = useState<XiangqiState[]>([]),
     [side, setSide] = useState<XiangqiSide>(1),
@@ -31,10 +38,12 @@ export function XiangqiPractice({ close }: { close: () => void }) {
     let cancelled = false;
     worker.onmessage = (event: MessageEvent<XiangqiAction | null>) => {
       if (cancelled || !event.data) return;
+      const isCapture = match.board[event.data.to] !== null;
       const next = advanceXiangqi(match, match.turn, event.data);
       setPrevious((old) => [...old, match]);
       setMatch(next);
       setWorkerError(false);
+      soundManager.play(isCapture ? "capture" : "place");
     };
     worker.onerror = () => {
       if (!cancelled) setWorkerError(true);
@@ -55,10 +64,12 @@ export function XiangqiPractice({ close }: { close: () => void }) {
   }
   function move(action: XiangqiAction) {
     if (!myTurn) return;
+    const isCapture = match.board[action.to] !== null;
     const next = advanceXiangqi(match, side, action);
     setPrevious((old) => [...old, match]);
     setMatch(next);
     setHint(null);
+    soundManager.play(isCapture ? "capture" : "place");
   }
   const undoIndex = previous.map((s) => s.turn).lastIndexOf(side);
   const notice =

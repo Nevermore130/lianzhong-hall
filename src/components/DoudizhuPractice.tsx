@@ -10,6 +10,7 @@ import {
 import { generateUUID } from "../lib/uuid";
 import { DoudizhuTable } from "./DoudizhuTable";
 import { Modal } from "./Modal";
+import type { SoundManager } from "../lib/sound";
 const deck = () => shuffleDeck((max) => Math.floor(Math.random() * max));
 const start = () => createDoudizhu(generateUUID(), deck());
 const players = [
@@ -17,29 +18,46 @@ const players = [
   { name: "电脑 · 小梅", avatar: 1, online: true, ready: true },
   { name: "电脑 · 老陈", avatar: 2, online: true, ready: true },
 ];
-export function DoudizhuPractice({ close }: { close: () => void }) {
+export function DoudizhuPractice({
+  close,
+  soundManager,
+}: {
+  close: () => void;
+  soundManager: SoundManager;
+}) {
   const [match, setMatch] = useState(start);
   useEffect(() => {
     if (match.status === "finished" || match.turn === 0) return;
-    const timer = setTimeout(
-      () =>
-        setMatch((old) =>
-          old !== match
-            ? old
-            : advanceDoudizhu(
-                old,
-                old.turn,
-                computerAction(doudizhuView(old, old.turn), old.turn),
-                deck,
-              ),
-        ),
-      800,
-    );
+    const timer = setTimeout(() => {
+      const computerAct = computerAction(
+        doudizhuView(match, match.turn),
+        match.turn,
+      );
+      setMatch((old) => {
+        if (old !== match) return old;
+        const next = advanceDoudizhu(old, old.turn, computerAct, deck);
+        if (computerAct.type === "bid" && computerAct.score > 0) {
+          soundManager.play("claim");
+        } else if (computerAct.type === "play") {
+          soundManager.play("play");
+        } else if (computerAct.type === "pass") {
+          soundManager.play("pass");
+        }
+        return next;
+      });
+    }, 800);
     return () => clearTimeout(timer);
-  }, [match]);
+  }, [match, soundManager]);
   function action(a: CardAction) {
     try {
       setMatch(advanceDoudizhu(match, 0, a, deck));
+      if (a.type === "bid" && a.score > 0) {
+        soundManager.play("claim");
+      } else if (a.type === "play") {
+        soundManager.play("play");
+      } else if (a.type === "pass") {
+        soundManager.play("pass");
+      }
       return true;
     } catch {
       return false;

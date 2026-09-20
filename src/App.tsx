@@ -534,13 +534,25 @@ export default function App() {
       )}
       {dialog === "practice" &&
         (currentGame?.id === "mahjong" ? (
-          <MahjongPractice close={() => setDialog(null)} />
+          <MahjongPractice
+            close={() => setDialog(null)}
+            soundManager={soundManager.current}
+          />
         ) : currentGame?.id === "doudizhu" ? (
-          <DoudizhuPractice close={() => setDialog(null)} />
+          <DoudizhuPractice
+            close={() => setDialog(null)}
+            soundManager={soundManager.current}
+          />
         ) : currentGame?.id === "xiangqi" ? (
-          <XiangqiPractice close={() => setDialog(null)} />
+          <XiangqiPractice
+            close={() => setDialog(null)}
+            soundManager={soundManager.current}
+          />
         ) : (
-          <Practice close={() => setDialog(null)} />
+          <Practice
+            close={() => setDialog(null)}
+            soundManager={soundManager.current}
+          />
         ))}
       {dialog &&
         ["login", "register", "forgot", "reset", "verify"].includes(dialog) && (

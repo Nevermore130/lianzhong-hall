@@ -34,16 +34,14 @@ import { XiangqiRoomView } from "./components/XiangqiRoomView";
 import { XiangqiPractice } from "./components/XiangqiPractice";
 import { ChatPanel } from "./components/ChatPanel";
 import { useVisualViewport } from "./lib/useVisualViewport";
+import {
+  SoundManager,
+  loadSoundSetting,
+  saveSoundSetting,
+} from "./lib/sound";
 
 type Dialog =
   AuthMode | "account" | "create" | "help" | "about" | "practice" | null;
-function savedSound() {
-  try {
-    return localStorage.getItem("hall:sound") === "on";
-  } catch {
-    return false;
-  }
-}
 export default function App() {
   useVisualViewport();
   const [showSidebar, setShowSidebar] = useState(false);
@@ -77,7 +75,7 @@ export default function App() {
       return [];
     }
   });
-  const [sound, setSound] = useState(savedSound),
+  const [sound, setSound] = useState(loadSoundSetting),
     [minimized, setMinimized] = useState(false);
   const [now, setNow] = useState(new Date()),
     [busy, setBusy] = useState(false);
@@ -89,7 +87,7 @@ export default function App() {
     revision,
   );
   const inviteJoined = useRef(false),
-    audio = useRef<AudioContext | null>(null);
+    soundManager = useRef(new SoundManager(loadSoundSetting()));
   const room = snapshot?.rooms.find((r) => r.id === snapshot.roomId),
     me = snapshot?.me ?? user;
   const moveRevision =
@@ -121,39 +119,22 @@ export default function App() {
       /* Optional preference storage. */
     }
   }, [favorites]);
-  function tone() {
-    try {
-      audio.current ??= new AudioContext();
-      void audio.current.resume();
-      const oscillator = audio.current.createOscillator(),
-        gain = audio.current.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.value = 660;
-      gain.gain.setValueAtTime(0.055, audio.current.currentTime);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        audio.current.currentTime + 0.14,
-      );
-      oscillator.connect(gain);
-      gain.connect(audio.current.destination);
-      oscillator.start();
-      oscillator.stop(audio.current.currentTime + 0.15);
-    } catch {
-      /* Audio is optional. */
-    }
-  }
   useEffect(() => {
-    if (sound && moveRevision !== null && moveRevision !== undefined) tone();
+    soundManager.current.setEnabled(sound);
+  }, [sound]);
+  useEffect(() => {
+    if (sound && moveRevision !== null && moveRevision !== undefined)
+      soundManager.current.play("place");
   }, [room?.match?.id, moveRevision, sound]);
   function toggleSound() {
     const next = !sound;
     setSound(next);
-    try {
-      localStorage.setItem("hall:sound", next ? "on" : "off");
-    } catch {
-      /* Optional preference storage. */
+    saveSoundSetting(next);
+    soundManager.current.setEnabled(next);
+    if (next) {
+      soundManager.current.unlock();
+      soundManager.current.play("place");
     }
-    if (next) tone();
   }
   function open(value: Dialog) {
     setDialog(value);
@@ -447,6 +428,7 @@ export default function App() {
                         snapshot={snapshot}
                         send={send}
                         connected={connected}
+                        soundManager={soundManager.current}
                       />
                     ) : room.game === "doudizhu" ? (
                       <DoudizhuRoomView
@@ -454,6 +436,7 @@ export default function App() {
                         snapshot={snapshot}
                         send={send}
                         connected={connected}
+                        soundManager={soundManager.current}
                         key={room.id}
                       />
                     ) : room.game === "xiangqi" ? (
@@ -463,6 +446,7 @@ export default function App() {
                         snapshot={snapshot}
                         send={send}
                         connected={connected}
+                        soundManager={soundManager.current}
                       />
                     ) : (
                       <RoomView
@@ -471,6 +455,7 @@ export default function App() {
                         snapshot={snapshot}
                         send={send}
                         connected={connected}
+                        soundManager={soundManager.current}
                       />
                     )}
                   </div>

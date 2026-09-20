@@ -3,16 +3,19 @@ import type { Command, MahjongRoom, Snapshot } from "../../shared/protocol.ts";
 import { MahjongTable } from "./MahjongTable";
 import { Modal } from "./Modal";
 import type { MahjongAction } from "../../shared/mahjong.ts";
+import type { SoundManager } from "../lib/sound";
 export function MahjongRoomView({
   room,
   snapshot,
   send,
   connected,
+  soundManager,
 }: {
   room: MahjongRoom;
   snapshot: Snapshot;
   send: (command: Command) => boolean;
   connected: boolean;
+  soundManager: SoundManager;
 }) {
   const [confirm, setConfirm] = useState<"leave" | "resign" | null>(null),
     [copied, setCopied] = useState(false);
@@ -27,7 +30,27 @@ export function MahjongRoomView({
   function action(a: MahjongAction) {
     if (!room.match) return false;
     const version = { matchId: room.match.id, revision: room.match.revision };
-    return send({ type: "mj:action", action: a, ...version });
+    const result = send({ type: "mj:action", action: a, ...version });
+
+    if (result) {
+      if (a.type === "discard") {
+        soundManager.play("place");
+      } else if (a.type === "claim") {
+        if (a.choice === "pass") {
+          soundManager.play("pass");
+        } else if (a.choice === "hu") {
+          soundManager.play("claim");
+        } else {
+          soundManager.play("capture");
+        }
+      } else if (a.type === "kong") {
+        soundManager.play("capture");
+      } else if (a.type === "hu") {
+        soundManager.play("claim");
+      }
+    }
+
+    return result;
   }
   return (
     <section className="room-view mj-room-view">

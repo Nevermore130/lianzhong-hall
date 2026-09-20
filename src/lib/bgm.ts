@@ -5,10 +5,10 @@
 export type BGMTrack = "gomoku" | "xiangqi" | "doudizhu" | "mahjong" | null;
 
 const BGM_FILES: Record<Exclude<BGMTrack, null>, string> = {
-  gomoku: "/assets/bgm/fools-philosophy.ogg",
-  xiangqi: "/assets/bgm/fools-philosophy.ogg",
-  doudizhu: "/assets/bgm/cozy-puzzle.ogg",
-  mahjong: "/assets/bgm/mahjongg-nes.ogg",
+  gomoku: "/assets/bgm/fools-philosophy-v2.ogg",
+  xiangqi: "/assets/bgm/fools-philosophy-v2.ogg",
+  doudizhu: "/assets/bgm/cozy-puzzle-v2.ogg",
+  mahjong: "/assets/bgm/mahjongg-nes-v2.ogg",
 };
 
 export class BGMManager {

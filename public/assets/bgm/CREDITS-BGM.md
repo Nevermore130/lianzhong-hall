@@ -4,7 +4,7 @@
 
 ## 音乐文件列表
 
-### fools-philosophy.ogg
+### fools-philosophy-v2.ogg
 - **标题**: Fool's Philosophy
 - **作者**: iamoneabe (Aron Elal)
 - **许可**: CC0 (Public Domain)
@@ -13,7 +13,7 @@
 - **用途**: 五子棋、象棋等桌游背景音乐
 - **风格**: 可循环的东方风格 VGM BGM
 
-### mahjongg-nes.ogg
+### mahjongg-nes-v2.ogg
 - **标题**: Mahjongg (NES) BGM
 - **作者**: Spring Spring (FoxSynergy)
 - **许可**: CC0 (Public Domain)
@@ -22,7 +22,7 @@
 - **用途**: 麻将游戏背景音乐
 - **风格**: 使用 N163 芯片的 NES 风格麻将音乐
 
-### cozy-puzzle.ogg
+### cozy-puzzle-v2.ogg
 - **标题**: Cozy Puzzle In-Game 2
 - **作者**: MintoDog
 - **许可**: CC0 (Public Domain)
@@ -31,7 +31,7 @@
 - **用途**: 斗地主等牌类游戏背景音乐
 - **风格**: 舒适轻松的解谜游戏音乐，可循环播放
 
-### magic-puzzle.ogg
+### magic-puzzle-v2.ogg
 - **标题**: Magic Puzzle In-Game 1
 - **作者**: MintoDog
 - **许可**: CC0 (Public Domain)

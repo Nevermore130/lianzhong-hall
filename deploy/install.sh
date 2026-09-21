@@ -137,12 +137,21 @@ echo "==> 配置 Caddy"
 # Create Caddy log directory
 mkdir -p /var/log/caddy
 chown caddy:caddy /var/log/caddy
-echo "请选择配置模式:"
-echo "  HTTP (IP访问):  sudo cp $INSTALL_DIR/deploy/Caddyfile.http /etc/caddy/Caddyfile"
-echo "  HTTPS (域名):   sudo cp $INSTALL_DIR/deploy/Caddyfile.https /etc/caddy/Caddyfile"
+echo "生产环境推荐使用 HTTPS (自动 Let's Encrypt 证书):"
 echo ""
-echo "然后编辑 /etc/caddy/Caddyfile 替换占位符，并重启 Caddy:"
-echo "  sudo systemctl reload caddy"
+echo "  1. 确保 DNS A/AAAA 记录已指向本服务器 IP"
+echo "  2. 复制 HTTPS 配置模板:"
+echo "     sudo cp $INSTALL_DIR/deploy/Caddyfile.https /etc/caddy/Caddyfile"
+echo ""
+echo "  3. 编辑配置，修改域名和邮箱(当前为 zhongle.online 示例):"
+echo "     sudo nano /etc/caddy/Caddyfile"
+echo ""
+echo "  4. 重启 Caddy:"
+echo "     sudo systemctl reload caddy"
+echo ""
+echo "临时测试(仅限 DNS 配置前，不推荐生产使用):"
+echo "  sudo cp $INSTALL_DIR/deploy/Caddyfile.http /etc/caddy/Caddyfile"
+echo "  并设置 APP_ORIGIN=http://YOUR.SERVER.IP"
 
 # Create backup directory
 mkdir -p /opt/lianzhong-backups
@@ -160,7 +169,7 @@ echo "后续步骤:"
 if [ -z "$APP_ORIGIN" ]; then
   echo "1. 创建 $INSTALL_DIR/.env 并设置 APP_ORIGIN（必须）"
 fi
-echo "2. 选择并配置 Caddyfile (HTTP 或 HTTPS)"
+echo "2. 配置 Caddy (推荐使用 HTTPS，见上方说明)"
 echo "3. 配置防火墙: sudo ufw allow 22/tcp && sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw enable"
 echo "4. 启动服务: sudo systemctl start lianzhong-hall"
 echo "5. 检查状态: sudo systemctl status lianzhong-hall"

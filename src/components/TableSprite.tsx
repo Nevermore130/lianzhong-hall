@@ -1,4 +1,4 @@
-import art from "../../public/assets/lobby-v1/manifest.json";
+import art from "../../public/assets/lobby-v2/manifest.json";
 import { Fragment } from "react";
 import { newXiangqiBoard, pieceGlyph } from "../../shared/xiangqi.ts";
 const chessSetup = newXiangqiBoard();
@@ -23,7 +23,7 @@ export function TableSprite({
           <Fragment key={layer.name}>
             <image
               data-layer={layer.name}
-              href={`/assets/lobby-v1/${layer.file}`}
+              href={`/assets/lobby-v2/${layer.file}`}
               x={layer.x}
               y={layer.y}
               width={layer.size}

@@ -19,6 +19,7 @@
     "nodemailer": "^10.0.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "twemoji": "^14.0.2",
     "ws": "^8.18.0"
   },
   "devDependencies": {

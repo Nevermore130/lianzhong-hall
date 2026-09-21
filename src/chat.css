@@ -41,6 +41,96 @@
 .enhanced-chat .chat-emoticon {
   margin-left: auto;
   margin-right: 4px;
+  position: relative;
+}
+.emoji-picker {
+  position: absolute;
+  bottom: 30px;
+  right: 5px;
+  width: 280px;
+  max-width: calc(100vw - 20px);
+  background: #fff;
+  border: 2px solid #999;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+.emoji-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-bottom: 1px solid #ccc;
+  background: #f0f0f0;
+}
+.emoji-picker-tabs {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.emoji-picker-tabs button {
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid #999;
+  background: #fff;
+  box-shadow: 1px 1px #555;
+}
+.emoji-picker-tabs button.active {
+  background: #000080;
+  color: #fff;
+  border-color: #000080;
+}
+.emoji-picker-close {
+  font-size: 14px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #999;
+  background: #fff;
+  box-shadow: 1px 1px #555;
+  line-height: 1;
+  font-weight: bold;
+}
+.emoji-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  padding: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.emoji-picker-item {
+  padding: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+}
+.emoji-picker-item:hover {
+  background: #e6e6e6;
+  border-color: #999;
+}
+.emoji-picker-item img.emoji {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.chat-text img.emoji {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 1px;
 }
 .enhanced-chat .chat-outbox-button {
   margin-left: auto;
@@ -193,5 +283,20 @@
   }
   .enhanced-chat .chat-line b {
     max-width: 85px;
+  }
+  .emoji-picker {
+    width: 240px;
+    right: 0;
+  }
+  .emoji-picker-grid {
+    grid-template-columns: repeat(6, 1fr);
+    max-height: 200px;
+  }
+  .emoji-picker-item {
+    font-size: 18px;
+  }
+  .emoji-picker-item img.emoji {
+    width: 18px;
+    height: 18px;
   }
 }

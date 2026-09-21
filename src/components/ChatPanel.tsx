@@ -17,6 +17,8 @@ import { api } from "../lib/client";
 import { Modal } from "./Modal";
 import { mergeMessages, mergeHistory, nearBottom } from "../lib/chat-state";
 import { useChatOutbox, type ChatTransport } from "../lib/useChatOutbox";
+import { EmojiPicker } from "./EmojiPicker";
+import { parseTwemoji } from "../lib/twemoji";
 
 type History = { messages: ChatMessage[]; hasMore: boolean };
 const time = (timestamp: number) =>
@@ -67,6 +69,8 @@ export function ChatPanel({
     [visible, setVisible] = useState(document.visibilityState === "visible");
   const [readRetry, setReadRetry] = useState(0);
   const [showOutbox, setShowOutbox] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const composerRef = useRef<HTMLInputElement>(null);
   const viewport = useRef<HTMLDivElement>(null),
     pinned = useRef(true),
     active = useRef(channel),
@@ -248,6 +252,26 @@ export function ChatPanel({
   function draft(text: string) {
     setDrafts((old) => ({ ...old, [channel]: text.slice(0, 200) }));
   }
+  function insertEmoji(emoji: string) {
+    const input = composerRef.current;
+    if (!input) {
+      draft((drafts[channel] ?? "") + emoji);
+      return;
+    }
+    const start = input.selectionStart ?? 0;
+    const end = input.selectionEnd ?? 0;
+    const currentText = drafts[channel] ?? "";
+    const before = currentText.slice(0, start);
+    const after = currentText.slice(end);
+    const newText = before + emoji + after;
+    draft(newText);
+    // Restore cursor position after emoji
+    setTimeout(() => {
+      const newPosition = start + emoji.length;
+      input.setSelectionRange(newPosition, newPosition);
+      input.focus();
+    }, 0);
+  }
   function submit(event: FormEvent) {
     event.preventDefault();
     const text = (drafts[channel] ?? "").trim();
@@ -321,11 +345,17 @@ export function ChatPanel({
         )}
         <button
           className="chat-emoticon"
-          onClick={() => draft((drafts[channel] ?? "") + " ☺")}
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           aria-label="插入表情"
         >
-          ☺
+          😀
         </button>
+        {showEmojiPicker && (
+          <EmojiPicker
+            onSelect={insertEmoji}
+            onClose={() => setShowEmojiPicker(false)}
+          />
+        )}
       </div>
       <div className="chat-scroll-wrap">
         <div
@@ -380,7 +410,10 @@ export function ChatPanel({
                   {message.name}
                   {message.userId === user.id ? "[我]" : ""}：
                 </b>
-                <span className="chat-text">{message.text}</span>
+                <span
+                  className="chat-text"
+                  dangerouslySetInnerHTML={{ __html: parseTwemoji(message.text) }}
+                />
                 {message.userId === user.id && (
                   <small className="chat-sent">已发送</small>
                 )}
@@ -395,7 +428,10 @@ export function ChatPanel({
               <div className="chat-line">
                 <time>{time(message.time)}</time>
                 <b>{user.name}[我]：</b>
-                <span className="chat-text">{message.text}</span>
+                <span
+                  className="chat-text"
+                  dangerouslySetInnerHTML={{ __html: parseTwemoji(message.text) }}
+                />
                 <small>
                   {message.status === "sending" ? "发送中…" : "发送失败"}
                 </small>
@@ -442,6 +478,7 @@ export function ChatPanel({
           {channel === "hall" ? "对大厅" : `对 ${channel.slice(5)} 桌`}说：
         </label>
         <input
+          ref={composerRef}
           id="chat-composer"
           aria-label="聊天消息"
           placeholder={connected ? "输入消息…" : "连接中，待发送内容会保留"}

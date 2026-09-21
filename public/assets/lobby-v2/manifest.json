@@ -1,0 +1,50 @@
+{
+  "version": 2,
+  "viewBox": [
+    0,
+    0,
+    210,
+    175
+  ],
+  "layers": [
+    {
+      "name": "chair-far",
+      "file": "chair-far.webp",
+      "x": 118,
+      "y": 10,
+      "size": 75
+    },
+    {
+      "name": "player-far",
+      "file": "player-far.webp",
+      "x": 96,
+      "y": 0,
+      "size": 93,
+      "seat": 0
+    },
+    {
+      "name": "table",
+      "file": "table.webp",
+      "x": 28,
+      "y": 18,
+      "size": 155
+    },
+    {
+      "name": "player-near",
+      "file": "player-near.webp",
+      "x": 17,
+      "y": 35,
+      "size": 105,
+      "seat": 1
+    },
+    {
+      "name": "chair-near",
+      "file": "chair-near.webp",
+      "x": 13,
+      "y": 67,
+      "size": 85
+    }
+  ],
+  "source": "assets/source/lobby-v1/PROMPTS.md",
+  "rebuild": "node scripts/build-lobby-assets.mjs"
+}

@@ -26,13 +26,18 @@
 
 ### 安装路径
 
-部署脚本默认使用 `/opt/lianzhong-hall` 作为安装目录。如果你的现有部署使用其他路径（如 `/var/www/lianzhong-hall`），可通过环境变量覆盖：
+**生产环境**使用 `/var/www/lianzhong-hall` 作为部署路径，与 Caddyfile 模板保持一致。
+
+部署脚本默认使用 `/opt/lianzhong-hall`。如需使用生产路径，可通过环境变量覆盖：
 
 ```bash
 INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 ```
 
-文档中的示例路径均为 `/opt/lianzhong-hall`，使用自定义路径时请相应调整 systemd 服务配置中的 `WorkingDirectory`。
+**注意**：
+- `deploy/Caddyfile.https` 和 `deploy/Caddyfile.http` 中的 `root *` 路径默认为 `/var/www/lianzhong-hall`
+- 如使用其他路径，需同步修改 Caddyfile 和 systemd 服务配置中的路径
+- 本文档示例路径统一使用 `/opt/lianzhong-hall` 便于演示，实际部署时请替换为你的实际路径
 
 ## 推荐部署环境
 
@@ -176,17 +181,57 @@ caddy version
 
 ### 7. 配置 Caddy 反向代理
 
-#### HTTP 模式（IP 访问，临时方案）
+⚠️ **生产环境推荐使用 HTTPS 模式**。HTTP 模式仅用于 DNS 配置前的临时测试。
 
-适用于无域名或临时测试，不支持 HTTPS。
+#### HTTPS 模式（推荐，生产环境）
+
+适用于已解析域名，Caddy 自动申请 Let's Encrypt 证书。
+
+**前置条件**:
+1. 域名 DNS A 记录已指向服务器 IP（可用 `dig yourdomain.com` 验证）
+2. 端口 80 和 443 必须对外开放（Let's Encrypt 验证需要）
+3. 服务器未被墙（Let's Encrypt ACME 挑战需要从外网访问）
+
+**配置步骤**:
+
+```bash
+# 1. 复制生产环境 HTTPS 配置模板
+sudo cp /opt/lianzhong-hall/deploy/Caddyfile.https /etc/caddy/Caddyfile
+
+# 2. 编辑配置，修改域名和邮箱
+sudo nano /etc/caddy/Caddyfile
+```
+
+需要修改的内容：
+- 第 2 行：`email admin@zhongle.online` 改为你的管理邮箱（用于 Let's Encrypt 续期通知）
+- 最后一行：`zhongle.online, www.zhongle.online` 改为你的域名（支持多个域名用逗号分隔）
+- 如果安装路径不是 `/var/www/lianzhong-hall`，需修改 `root *` 路径
+
+```bash
+# 3. 重启 Caddy（首次会自动申请证书）
+sudo systemctl reload caddy
+
+# 4. 检查日志确认证书申请成功
+sudo journalctl -u caddy -f
+```
+
+在 `.env` 中设置：
+```bash
+APP_ORIGIN=https://yourdomain.com  # 必须是 https，与 Caddyfile 中的主域名一致
+```
+
+Caddy 会自动续期证书，无需手动干预。
+
+#### HTTP 模式（临时测试用，不推荐生产）
+
+⚠️ **仅用于 DNS 配置前的临时测试**，无加密，不适合生产环境。
 
 ```bash
 # 复制 HTTP 配置模板
 sudo cp /opt/lianzhong-hall/deploy/Caddyfile.http /etc/caddy/Caddyfile
 
-# 编辑配置（可选：绑定到特定 IP）
+# 如需修改路径，编辑配置
 sudo nano /etc/caddy/Caddyfile
-# 根据需要取消注释 bind 行并替换 YOUR_IP_HERE
 
 # 重启 Caddy
 sudo systemctl reload caddy
@@ -197,35 +242,7 @@ sudo systemctl reload caddy
 APP_ORIGIN=http://203.0.113.10  # 替换为你的服务器 IP
 ```
 
-#### HTTPS 模式（推荐，需要域名）
-
-适用于已解析域名，Caddy 自动申请 Let's Encrypt 证书。
-
-**前置条件**:
-1. 域名 DNS A 记录已指向服务器 IP（可用 `dig yourdomain.com` 验证）
-2. 端口 80 和 443 必须对外开放（Let's Encrypt 验证需要）
-3. 服务器未被墙（Let's Encrypt ACME 挑战需要从外网访问）
-
-```bash
-# 复制 HTTPS 配置模板
-sudo cp /opt/lianzhong-hall/deploy/Caddyfile.https /etc/caddy/Caddyfile
-
-# 编辑配置，将 yourdomain.com 替换为真实域名
-sudo nano /etc/caddy/Caddyfile
-
-# 重启 Caddy（首次会自动申请证书）
-sudo systemctl reload caddy
-
-# 检查日志确认证书申请成功
-sudo journalctl -u caddy -f
-```
-
-在 `.env` 中设置：
-```bash
-APP_ORIGIN=https://yourdomain.com  # 必须是 https
-```
-
-Caddy 会自动续期证书，无需手动干预。
+**配置好 DNS 后应立即切换到 HTTPS 模式。**
 
 ### 8. 配置 systemd 服务
 

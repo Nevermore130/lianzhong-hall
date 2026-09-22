@@ -52,7 +52,7 @@ export function RoomView({
     status =
       room.match.winner === "draw"
         ? "本局和棋 · 双方准备可再来一局"
-        : `${room.match.winner === 1 ? "黑" : "白"}棋获胜 · ${room.match.reason}`;
+        : `${room.match.winner === 1 ? "黑" : "白"}棋获胜 · ${room.match.reason} · 积分已更新`;
   return (
     <section className="room-view">
       <div className="room-view-heading">

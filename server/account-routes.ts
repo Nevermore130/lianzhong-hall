@@ -139,6 +139,8 @@ export function createAccountRoutes({
           } else if (path === "sessions") {
             const user = member();
             json(res, 200, { sessions: accounts.sessions(user.id, previous) });
+          } else if (path === "leaderboard") {
+            json(res, 200, { leaderboard: accounts.leaderboard(50) });
           } else if (path === "auth/config")
             json(res, 200, {
               mailMode: mailer.mode,

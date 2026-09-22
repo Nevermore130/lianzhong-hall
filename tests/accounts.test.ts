@@ -284,3 +284,122 @@ test("profile validation and account deletion remove personal records while pres
     0,
   );
 });
+
+test("new accounts start with 1000 points; guests also have 1000 points", async (t) => {
+  const { store } = fixture(t);
+  const guest = await store.create(null);
+  assert.equal(guest.points, 1000);
+  const member = await store.create("新玩家", password);
+  assert.equal(member.points, 1000);
+});
+
+test("gomoku/xiangqi winner gains 10 points, loser loses 10 points, draw no change", async (t) => {
+  const { store } = fixture(t);
+  const alice = await store.create("爱丽丝", password);
+  const bob = await store.create("鲍勃", password);
+  store.result("match-1", alice.id, bob.id, alice.id, "连五", "gomoku");
+  const afterAlice = store.get(alice.id)!;
+  const afterBob = store.get(bob.id)!;
+  assert.equal(afterAlice.points, 1010);
+  assert.equal(afterBob.points, 990);
+  store.result("match-2", alice.id, bob.id, null, "和棋", "xiangqi");
+  assert.equal(store.get(alice.id)!.points, 1010);
+  assert.equal(store.get(bob.id)!.points, 990);
+});
+
+test("points never go below zero", async (t) => {
+  const { store } = fixture(t);
+  const alice = await store.create("低分玩家", password);
+  const bob = await store.create("高分玩家", password);
+  store.db.prepare("UPDATE users SET points=5 WHERE id=?").run(alice.id);
+  assert.equal(store.get(alice.id)!.points, 5);
+  store.result("match-floor", bob.id, alice.id, bob.id, "测试", "gomoku");
+  assert.equal(store.get(alice.id)!.points, 0);
+  assert.equal(store.get(bob.id)!.points, 1010);
+});
+
+test("doudizhu updates points based on entertainment score", async (t) => {
+  const { store } = fixture(t);
+  const landlord = await store.create("地主", password);
+  const farmer1 = await store.create("农民甲", password);
+  const farmer2 = await store.create("农民乙", password);
+  store.cardResult(
+    "ddz-1",
+    [
+      { userId: landlord.id, role: "landlord", won: true, score: 2 },
+      { userId: farmer1.id, role: "farmer", won: false, score: -1 },
+      { userId: farmer2.id, role: "farmer", won: false, score: -1 },
+    ],
+    "landlord",
+    "地主先出完",
+    1,
+    1,
+    false,
+  );
+  assert.equal(store.get(landlord.id)!.points, 1020);
+  assert.equal(store.get(farmer1.id)!.points, 990);
+  assert.equal(store.get(farmer2.id)!.points, 990);
+});
+
+test("mahjong updates points based on entertainment score", async (t) => {
+  const { store } = fixture(t);
+  const east = await store.create("东家", password);
+  const south = await store.create("南家", password);
+  const west = await store.create("西家", password);
+  const north = await store.create("北家", password);
+  store.mahjongResult(
+    "mj-1",
+    [
+      { userId: east.id, won: true, lost: false, score: 3 },
+      { userId: south.id, won: false, lost: true, score: -1 },
+      { userId: west.id, won: false, lost: true, score: -1 },
+      { userId: north.id, won: false, lost: true, score: -1 },
+    ],
+    { kind: "self-draw", winner: 0, loser: null, reason: "东位自摸" },
+  );
+  assert.equal(store.get(east.id)!.points, 1030);
+  assert.equal(store.get(south.id)!.points, 990);
+  assert.equal(store.get(west.id)!.points, 990);
+  assert.equal(store.get(north.id)!.points, 990);
+  store.mahjongResult(
+    "mj-2",
+    [
+      { userId: east.id, won: false, lost: true, score: 0 },
+      { userId: south.id, won: false, lost: false, score: 0 },
+      { userId: west.id, won: false, lost: false, score: 0 },
+      { userId: north.id, won: false, lost: false, score: 0 },
+    ],
+    { kind: "forfeit", winner: null, loser: 0, reason: "东位退出" },
+  );
+  assert.equal(store.get(east.id)!.points, 1030);
+  assert.equal(store.get(south.id)!.points, 990);
+});
+
+test("leaderboard returns top players sorted by points, then wins", async (t) => {
+  const { store } = fixture(t);
+  const guest = await store.create(null);
+  const alice = await store.create("爱丽丝", password);
+  const bob = await store.create("鲍勃", password);
+  const charlie = await store.create("查理", password);
+  store.db.prepare("UPDATE users SET points=1500, wins=10 WHERE id=?").run(alice.id);
+  store.db.prepare("UPDATE users SET points=1200, wins=5 WHERE id=?").run(bob.id);
+  store.db.prepare("UPDATE users SET points=1200, wins=8 WHERE id=?").run(charlie.id);
+  const board = store.leaderboard(50);
+  assert.ok(!board.some((u) => u.id === guest.id));
+  assert.equal(board[0].id, alice.id);
+  assert.equal(board[1].id, charlie.id);
+  assert.equal(board[2].id, bob.id);
+  assert.equal(board[0].points, 1500);
+});
+
+test("result is idempotent: duplicate settlement does not double-award points", async (t) => {
+  const { store } = fixture(t);
+  const alice = await store.create("爱丽丝", password);
+  const bob = await store.create("鲍勃", password);
+  store.result("match-idempotent", alice.id, bob.id, alice.id, "连五", "gomoku");
+  const pointsAfterFirst = store.get(alice.id)!.points;
+  store.result("match-idempotent", alice.id, bob.id, alice.id, "连五", "gomoku");
+  const pointsAfterSecond = store.get(alice.id)!.points;
+  assert.equal(pointsAfterFirst, pointsAfterSecond);
+  assert.equal(pointsAfterFirst, 1010);
+});

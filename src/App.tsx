@@ -22,6 +22,7 @@ import { api, useHall } from "./lib/client";
 import { useIdentity } from "./lib/identity";
 import { AuthDialog, type AuthMode } from "./components/AuthDialog";
 import { AccountCenter } from "./components/AccountCenter";
+import { Leaderboard } from "./components/Leaderboard";
 import { ToolbarIcon } from "./components/ClientArt";
 import { LobbyScene } from "./components/LobbyScene";
 import { ServerSidebar } from "./components/ServerSidebar";
@@ -46,7 +47,14 @@ import {
 } from "./lib/bgm";
 
 type Dialog =
-  AuthMode | "account" | "create" | "help" | "about" | "practice" | null;
+  | AuthMode
+  | "account"
+  | "create"
+  | "help"
+  | "about"
+  | "practice"
+  | "leaderboard"
+  | null;
 export default function App() {
   useVisualViewport();
   const [showSidebar, setShowSidebar] = useState(false);
@@ -262,6 +270,10 @@ export default function App() {
             <button onClick={() => open("practice")}>
               <ToolbarIcon kind="practice" />
               <span>单机游戏</span>
+            </button>
+            <button onClick={() => open("leaderboard")}>
+              <ToolbarIcon kind="star" />
+              <span>排行榜</span>
             </button>
             <button
               className={onlyFavorites ? "pressed" : ""}
@@ -617,6 +629,9 @@ export default function App() {
             setDialog("login");
           }}
         />
+      )}
+      {dialog === "leaderboard" && (
+        <Leaderboard close={() => setDialog(null)} />
       )}
       {dialog === "create" && (
         <Modal title="创建游戏房间" close={() => setDialog(null)}>

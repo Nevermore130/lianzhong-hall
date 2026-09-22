@@ -52,6 +52,7 @@ export type User = {
   wins: number;
   losses: number;
   avatar: number;
+  points: number;
 };
 export type Player = User & { online: boolean; roomId: string | null };
 export type Seat = { userId: string; ready: boolean } | null;

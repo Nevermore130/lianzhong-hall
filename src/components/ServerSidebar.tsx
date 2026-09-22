@@ -19,10 +19,14 @@ export function ServerSidebar({
     "mahjong",
   ]);
   const [selectedPlayer, setSelectedPlayer] = useState(""),
-    [sort, setSort] = useState<"name" | "wins">("name");
+    [sort, setSort] = useState<"name" | "wins" | "points">("name");
   const players = (snapshot?.players.filter((p) => p.online) ?? []).sort(
     (a, b) =>
-      sort === "wins" ? b.wins - a.wins : a.name.localeCompare(b.name, "zh-CN"),
+      sort === "wins"
+        ? b.wins - a.wins
+        : sort === "points"
+          ? b.points - a.points
+          : a.name.localeCompare(b.name, "zh-CN"),
   );
   const selected = players.find((p) => p.id === selectedPlayer);
   const selectedRoom = snapshot?.rooms.find((r) => r.id === selected?.roomId);
@@ -122,6 +126,11 @@ export function ServerSidebar({
                 </th>
                 <th>状态</th>
                 <th>
+                  <button onClick={() => setSort("points")}>
+                    积分{sort === "points" ? " ▾" : ""}
+                  </button>
+                </th>
+                <th>
                   <button onClick={() => setSort("wins")}>
                     胜局{sort === "wins" ? " ▾" : ""}
                   </button>
@@ -151,6 +160,7 @@ export function ServerSidebar({
                     </button>
                   </td>
                   <td>{p.roomId ? "游戏中" : "大厅"}</td>
+                  <td>{p.points}</td>
                   <td>{p.wins}</td>
                   <td>{p.losses}</td>
                   <td>

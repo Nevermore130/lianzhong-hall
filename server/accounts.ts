@@ -33,6 +33,7 @@ type Row = {
   email: string | null;
   created_at: number;
   revision: number;
+  points: number;
 };
 type SessionRow = {
   id: string;
@@ -62,6 +63,7 @@ const publicUser = (row: Row): User => ({
   wins: row.wins,
   losses: row.losses,
   avatar: row.avatar,
+  points: row.points,
 });
 const normalizeName = (name: unknown) => {
   const value = typeof name === "string" ? name.trim().normalize("NFKC") : "";
@@ -122,7 +124,7 @@ export class Accounts {
   ) {
     this.db = new DatabaseSync(path);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
-      CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE, guest INTEGER NOT NULL, password TEXT, wins INTEGER NOT NULL DEFAULT 0, losses INTEGER NOT NULL DEFAULT 0);
+      CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE, guest INTEGER NOT NULL, password TEXT, wins INTEGER NOT NULL DEFAULT 0, losses INTEGER NOT NULL DEFAULT 0, points INTEGER NOT NULL DEFAULT 1000);
       CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS results (id TEXT PRIMARY KEY, black_id TEXT, white_id TEXT, winner TEXT, reason TEXT, ended INTEGER NOT NULL);`);
     this.db.exec(`CREATE TABLE IF NOT EXISTS card_results (
@@ -154,6 +156,7 @@ export class Accounts {
       add("users", "email", "TEXT COLLATE NOCASE");
       add("users", "created_at", "INTEGER NOT NULL DEFAULT 0");
       add("users", "revision", "INTEGER NOT NULL DEFAULT 0");
+      add("users", "points", "INTEGER NOT NULL DEFAULT 1000");
       add("sessions", "id", "TEXT");
       add("sessions", "device", "TEXT NOT NULL DEFAULT '原有登录设备'");
       add("sessions", "created_at", "INTEGER NOT NULL DEFAULT 0");
@@ -632,6 +635,13 @@ export class Accounts {
         this.db
           .prepare("UPDATE users SET losses=losses+1 WHERE id=?")
           .run(winner === black ? white : black);
+        // 积分变化：赢家+10，输家-10，不低于0
+        this.db
+          .prepare("UPDATE users SET points=MAX(0, points+10) WHERE id=?")
+          .run(winner);
+        this.db
+          .prepare("UPDATE users SET points=MAX(0, points-10) WHERE id=?")
+          .run(winner === black ? white : black);
       }
     });
   }
@@ -676,6 +686,13 @@ export class Accounts {
                 : "UPDATE users SET losses=losses+1 WHERE id=?",
             )
             .run(p.userId);
+        // 积分变化：麻将娱乐分×10转换为大厅积分，退出中止不改积分
+        if (result.kind !== "forfeit") {
+          const pointDelta = p.score * 10;
+          this.db
+            .prepare("UPDATE users SET points=MAX(0, points+?) WHERE id=?")
+            .run(pointDelta, p.userId);
+        }
       });
     });
   }
@@ -710,7 +727,23 @@ export class Accounts {
                 : "UPDATE users SET losses=losses+1 WHERE id=?",
             )
             .run(p.userId);
+        // 积分变化：斗地主娱乐分(底分×倍数×结算)×10转换为大厅积分；叫分取消不改积分
+        if (winner) {
+          const pointDelta = p.score * 10;
+          this.db
+            .prepare("UPDATE users SET points=MAX(0, points+?) WHERE id=?")
+            .run(pointDelta, p.userId);
+        }
       });
     });
+  }
+  leaderboard(limit = 50): User[] {
+    return (
+      this.db
+        .prepare(
+          "SELECT * FROM users WHERE guest=0 ORDER BY points DESC, wins DESC LIMIT ?",
+        )
+        .all(limit) as Row[]
+    ).map(publicUser);
   }
 }

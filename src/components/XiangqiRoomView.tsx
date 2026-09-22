@@ -57,7 +57,7 @@ export function XiangqiRoomView({
         ? "对方暂时离线，保留座位 30 秒…"
         : `${sideName(match.turn)}走棋${ownSeat < 0 ? " · 观战中" : myTurn ? " · 轮到你了" : " · 等待对手"}${inCheck(match.board, match.turn) ? " · 将军！必须应将" : ""}`;
   if (match.status === "finished")
-    status = `${match.winner === "draw" ? "本局和棋" : `${sideName(match.winner as XiangqiSide)}获胜`} · ${match.reason}`;
+    status = `${match.winner === "draw" ? "本局和棋" : `${sideName(match.winner as XiangqiSide)}获胜`} · ${match.reason} · 积分已更新`;
   return (
     <section className="room-view xq-room-view">
       <div className="room-view-heading">

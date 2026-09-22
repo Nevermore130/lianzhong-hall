@@ -85,7 +85,8 @@ export function DoudizhuTable({
       ? match.winner
         ? (match.winner === "landlord" ? "地主获胜" : "农民获胜") +
           " · " +
-          match.reason
+          match.reason +
+          " · 积分已更新"
         : match.reason
       : !allOnline
         ? "有人暂时离线，等待重连（保留 30 秒）"

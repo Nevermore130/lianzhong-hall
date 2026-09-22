@@ -149,6 +149,17 @@ export default function App() {
     if (sound && moveRevision !== null && moveRevision !== undefined)
       soundManager.current.play("place");
   }, [room?.match?.id, moveRevision, sound]);
+  useEffect(() => {
+    if (!showLanguageMenu) return;
+    function handleClick(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".language-switcher")) {
+        setShowLanguageMenu(false);
+      }
+    }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [showLanguageMenu]);
   function toggleSound() {
     const next = !sound;
     setSound(next);
@@ -296,77 +307,6 @@ export default function App() {
               <ToolbarIcon kind="star" />
               <span>{t("myFavorites")}</span>
             </button>
-            <div className="language-switcher" style={{ position: "relative" }}>
-              <button
-                onClick={() => setShowLanguageMenu((v) => !v)}
-                aria-label={t("language")}
-                title={t("language")}
-              >
-                <Languages size={13} />
-                <span>{t("language")}</span>
-              </button>
-              {showLanguageMenu && (
-                <div
-                  className="language-menu"
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    background: "#c0c0c0",
-                    border: "2px outset #fff",
-                    boxShadow: "2px 2px 0 rgba(0,0,0,0.3)",
-                    zIndex: 1000,
-                    minWidth: "120px",
-                  }}
-                >
-                  <button
-                    onClick={() => changeLanguage("zh-CN")}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      padding: "4px 8px",
-                      border: "none",
-                      background: getCurrentLocale() === "zh-CN" ? "#000080" : "transparent",
-                      color: getCurrentLocale() === "zh-CN" ? "#fff" : "#000",
-                      textAlign: "left",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {t("languageZhCN")}
-                  </button>
-                  <button
-                    onClick={() => changeLanguage("yue")}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      padding: "4px 8px",
-                      border: "none",
-                      background: getCurrentLocale() === "yue" ? "#000080" : "transparent",
-                      color: getCurrentLocale() === "yue" ? "#fff" : "#000",
-                      textAlign: "left",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {t("languageYue")}
-                  </button>
-                  <button
-                    onClick={() => changeLanguage("en")}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      padding: "4px 8px",
-                      border: "none",
-                      background: getCurrentLocale() === "en" ? "#000080" : "transparent",
-                      color: getCurrentLocale() === "en" ? "#fff" : "#000",
-                      textAlign: "left",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {t("languageEn")}
-                  </button>
-                </div>
-              )}
-            </div>
             <button onClick={() => open("about")}>
               <ToolbarIcon kind="settings" />
               <span>{t("gameSettings")}</span>
@@ -386,6 +326,39 @@ export default function App() {
               <span>{me?.guest ? t("exitLobby") : t("logoutAccount")}</span>
             </button>
           </nav>
+          <div className="language-switcher">
+            <button
+              onClick={() => setShowLanguageMenu((v) => !v)}
+              aria-label={t("language")}
+              title={t("language")}
+              className="language-button"
+            >
+              <Languages size={13} />
+              <span>{t("language")}</span>
+            </button>
+            {showLanguageMenu && (
+              <div className="language-menu">
+                <button
+                  onClick={() => changeLanguage("zh-CN")}
+                  className={getCurrentLocale() === "zh-CN" ? "active" : ""}
+                >
+                  {t("languageZhCN")}
+                </button>
+                <button
+                  onClick={() => changeLanguage("yue")}
+                  className={getCurrentLocale() === "yue" ? "active" : ""}
+                >
+                  {t("languageYue")}
+                </button>
+                <button
+                  onClick={() => changeLanguage("en")}
+                  className={getCurrentLocale() === "en" ? "active" : ""}
+                >
+                  {t("languageEn")}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="header-account">
             <span>{t("onlinePlayers", { count: online.length })}</span>
             <button disabled={!!activeMatch} onClick={() => open("login")}>

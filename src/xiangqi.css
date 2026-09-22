@@ -1,18 +1,13 @@
 .xq-room-view {
-  container-type: size;
-  max-width: 800px;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+  --xq-room-board-width: min(540px, max(240px, calc(90dvh - 360px)));
+  max-width: calc(var(--xq-room-board-width) + 214px);
+  container-type: inline-size;
 }
 .client-left:has(.xq-room-view) {
   grid-template-rows: minmax(0, 1fr) 104px;
 }
 .xq-room-view .xq-board {
-  max-width: min(540px, 90cqw, max(240px, calc(90cqh - 200px)));
-  flex: 1;
-  min-height: 0;
+  max-width: var(--xq-room-board-width);
 }
 .xq-room-view .xq-seats {
   margin: 5px auto;
@@ -43,9 +38,7 @@
   grid-template-columns: minmax(0, 1fr) 170px;
   gap: 12px;
   align-items: start;
-  margin: 7px auto;
-  flex: 1;
-  min-height: 0;
+  margin: 12px auto;
 }
 .xq-board {
   width: 100%;

@@ -1,6 +1,8 @@
 import type { Room, Snapshot } from "../../shared/protocol.ts";
 import { TableSprite } from "./TableSprite";
 import { PlayerPortrait } from "./ClientArt";
+import { useTranslation } from "react-i18next";
+
 export function LobbyScene({
   rooms,
   snapshot,
@@ -20,8 +22,10 @@ export function LobbyScene({
   available: boolean;
   gameName: string;
 }) {
+  const { t } = useTranslation();
+  
   return (
-    <div className="lobby-scene" aria-label="游戏桌列表">
+    <div className="lobby-scene" aria-label={t("gameLobby")}>
       {rooms.map((room) => {
         const number = room.name.match(/ (\d+) 桌$/)?.[1] ?? room.id;
         const players = room.seats.map((s) =>
@@ -41,18 +45,18 @@ export function LobbyScene({
           >
             <button
               className={`table-favorite ${favorites.includes(room.id) ? "is-favorite" : ""}`}
-              aria-label={`${favorites.includes(room.id) ? "取消收藏" : "收藏"}${room.name}`}
+              aria-label={`${favorites.includes(room.id) ? t("unfavoriteRoom") : t("favoriteRoom")}${room.name}`}
               onClick={() => toggleFavorite(room.id)}
             >
               {favorites.includes(room.id) ? "★" : "☆"}
             </button>
             <div className="seat-name upper">
               <span className={players[0] ? "online-gem" : "empty-gem"}>◆</span>
-              {players[0]?.name ?? "等待加入"}
+              {players[0]?.name ?? t("waitingToJoin")}
             </div>
             <button
               className="scene-table-enter"
-              aria-label={`进入${room.name}`}
+              aria-label={`${t("enterRoom")}${room.name}`}
               disabled={!connected}
               onClick={() => enter(room.id)}
             >
@@ -82,19 +86,19 @@ export function LobbyScene({
                 />
               )}
               <span className="table-hover-label">
-                {room.match?.status === "playing" ? "观看对局" : "进入游戏桌"}
+                {room.match?.status === "playing" ? t("watchMatch") : t("enterRoom")}
               </span>
             </button>
             <div className="seat-name lower">
               <span className={players[1] ? "online-gem" : "empty-gem"}>◆</span>
-              {players[1]?.name ?? "等待加入"}
+              {players[1]?.name ?? t("waitingToJoin")}
             </div>
             {(room.game === "doudizhu" || room.game === "mahjong") && (
               <div className="seat-name third">
                 <span className={players[2] ? "online-gem" : "empty-gem"}>
                   ◆
                 </span>
-                {players[2]?.name ?? "等待加入"}
+                {players[2]?.name ?? t("waitingToJoin")}
               </div>
             )}
             {room.game === "mahjong" && (
@@ -102,14 +106,14 @@ export function LobbyScene({
                 <span className={players[3] ? "online-gem" : "empty-gem"}>
                   ◆
                 </span>
-                {players[3]?.name ?? "等待加入"}
+                {players[3]?.name ?? t("waitingToJoin")}
               </div>
             )}
             <div className="table-caption">
               <span>— {String(number).padStart(2, "0")} —</span>
               <small>
                 {room.match?.status === "playing"
-                  ? "对局中"
+                  ? t("inProgress")
                   : `${room.seats.filter(Boolean).length} / ${room.seats.length}`}
               </small>
             </div>
@@ -120,12 +124,12 @@ export function LobbyScene({
         <div className="scene-empty">
           <span>♟</span>
           <strong>
-            {available ? "没有符合条件的游戏桌" : `${gameName}暂未开放`}
+            {available ? t("noMatchingRooms") : t("gameNotAvailable", { game: gameName })}
           </strong>
           <p>
             {available
-              ? "请修改搜索条件，或创建新的游戏桌。"
-              : "当前已开放五子棋、中国象棋、斗地主与中国麻将，可从右侧房间列表进入。"}
+              ? t("modifySearch")
+              : t("otherGamesAvailable")}
           </p>
         </div>
       )}

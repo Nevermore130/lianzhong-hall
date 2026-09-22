@@ -2,6 +2,7 @@ import { MahjongRoomView } from "./components/MahjongRoomView";
 import { MahjongPractice } from "./components/MahjongPractice";
 import { MahjongRules } from "./components/MahjongRules";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Check,
@@ -16,6 +17,7 @@ import {
   Volume2,
   VolumeX,
   X,
+  Languages,
 } from "lucide-react";
 import { games, type GameId, type User } from "../shared/protocol.ts";
 import { api, useHall } from "./lib/client";
@@ -44,11 +46,14 @@ import {
   loadMusicSetting,
   saveMusicSetting,
 } from "./lib/bgm";
+import { saveLocale, getCurrentLocale, type Locale } from "./i18n";
 
 type Dialog =
   AuthMode | "account" | "create" | "help" | "about" | "practice" | null;
 export default function App() {
   useVisualViewport();
+  const { t, i18n } = useTranslation();
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const { user, bootError, revision, accept, reconcile } = useIdentity();
   const [recovery] = useState(() => {
@@ -155,12 +160,17 @@ export default function App() {
       bgmManager.current.unlock();
     }
   }
+  function changeLanguage(locale: Locale) {
+    void i18n.changeLanguage(locale);
+    saveLocale(locale);
+    setShowLanguageMenu(false);
+  }
   function open(value: Dialog) {
     setDialog(value);
   }
   function selectGame(id: GameId | "all") {
     if (activeMatch) {
-      setError("请先完成对局，或认输后切换游戏");
+      setError(t("finishMatchFirst"));
       return;
     }
     setShowSidebar(false);
@@ -203,27 +213,27 @@ export default function App() {
         <div className="client-caption">
           <span>
             <ToolbarIcon kind="home" />
-            众乐游戏大厅
+            {t("appName")}
           </span>
           <div className="caption-controls">
             <button
-              aria-label={minimized ? "恢复窗口" : "最小化窗口"}
+              aria-label={minimized ? t("windowRestore") : t("windowMinimize")}
               onClick={() => setMinimized((v) => !v)}
             >
               <Minus size={12} />
             </button>
             <button
-              aria-label="切换全屏"
+              aria-label={t("windowFullscreen")}
               onClick={() => {
                 const action = document.fullscreenElement
                   ? document.exitFullscreen()
                   : document.documentElement.requestFullscreen();
-                void action.catch(() => setError("当前窗口不支持全屏显示"));
+                void action.catch(() => setError(t("fullscreenNotSupported")));
               }}
             >
               <Maximize2 size={10} />
             </button>
-            <button aria-label="游戏帮助" onClick={() => open("help")}>
+            <button aria-label={t("windowHelp")} onClick={() => open("help")}>
               <CircleHelp size={11} />
             </button>
           </div>
@@ -236,32 +246,32 @@ export default function App() {
           >
             <ToolbarIcon kind="account" />
             <span>
-              <b>{me?.name ?? "连接中…"}</b>
+              <b>{me?.name ?? t("connecting")}</b>
               <small>
                 <i
                   className={
                     connected ? "online-indicator" : "offline-indicator"
                   }
                 />
-                {me?.guest ? "游客" : "注册玩家"}
+                {me?.guest ? t("guest") : t("registeredPlayer")}
               </small>
             </span>
           </button>
-          <nav aria-label="主工具栏">
+          <nav aria-label={t("gameLobby")}>
             <button onClick={() => selectGame("all")}>
               <ToolbarIcon kind="home" />
-              <span>游戏大厅</span>
+              <span>{t("gameLobby")}</span>
             </button>
             <button
               disabled={!!activeMatch}
               onClick={() => open(me?.guest ? "register" : "account")}
             >
               <ToolbarIcon kind="account" />
-              <span>{me?.guest ? "注册账号" : "我的账号"}</span>
+              <span>{me?.guest ? t("registerAccount") : t("myAccount")}</span>
             </button>
             <button onClick={() => open("practice")}>
               <ToolbarIcon kind="practice" />
-              <span>单机游戏</span>
+              <span>{t("practiceMode")}</span>
             </button>
             <button
               className={onlyFavorites ? "pressed" : ""}
@@ -272,15 +282,86 @@ export default function App() {
               }}
             >
               <ToolbarIcon kind="star" />
-              <span>我的收藏</span>
+              <span>{t("myFavorites")}</span>
             </button>
+            <div className="language-switcher" style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowLanguageMenu((v) => !v)}
+                aria-label={t("language")}
+                title={t("language")}
+              >
+                <Languages size={13} />
+                <span>{t("language")}</span>
+              </button>
+              {showLanguageMenu && (
+                <div
+                  className="language-menu"
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    background: "#c0c0c0",
+                    border: "2px outset #fff",
+                    boxShadow: "2px 2px 0 rgba(0,0,0,0.3)",
+                    zIndex: 1000,
+                    minWidth: "120px",
+                  }}
+                >
+                  <button
+                    onClick={() => changeLanguage("zh-CN")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "4px 8px",
+                      border: "none",
+                      background: getCurrentLocale() === "zh-CN" ? "#000080" : "transparent",
+                      color: getCurrentLocale() === "zh-CN" ? "#fff" : "#000",
+                      textAlign: "left",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {t("languageZhCN")}
+                  </button>
+                  <button
+                    onClick={() => changeLanguage("yue")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "4px 8px",
+                      border: "none",
+                      background: getCurrentLocale() === "yue" ? "#000080" : "transparent",
+                      color: getCurrentLocale() === "yue" ? "#fff" : "#000",
+                      textAlign: "left",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {t("languageYue")}
+                  </button>
+                  <button
+                    onClick={() => changeLanguage("en")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "4px 8px",
+                      border: "none",
+                      background: getCurrentLocale() === "en" ? "#000080" : "transparent",
+                      color: getCurrentLocale() === "en" ? "#fff" : "#000",
+                      textAlign: "left",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {t("languageEn")}
+                  </button>
+                </div>
+              )}
+            </div>
             <button onClick={() => open("about")}>
               <ToolbarIcon kind="settings" />
-              <span>游戏设置</span>
+              <span>{t("gameSettings")}</span>
             </button>
             <button onClick={() => open("help")}>
               <ToolbarIcon kind="help" />
-              <span>游戏帮助</span>
+              <span>{t("gameHelp")}</span>
             </button>
             <button
               disabled={!!activeMatch || busy}
@@ -290,13 +371,13 @@ export default function App() {
               }}
             >
               <ToolbarIcon kind="exit" />
-              <span>{me?.guest ? "收起大厅" : "退出账号"}</span>
+              <span>{me?.guest ? t("exitLobby") : t("logoutAccount")}</span>
             </button>
           </nav>
           <div className="header-account">
-            <span>在线：{online.length} 人</span>
+            <span>{t("onlinePlayers", { count: online.length })}</span>
             <button disabled={!!activeMatch} onClick={() => open("login")}>
-              切换账号
+              {t("switchAccount")}
             </button>
           </div>
         </div>
@@ -304,16 +385,16 @@ export default function App() {
       {minimized ? (
         <div className="restore-window">
           <Monitor size={25} />
-          <span>游戏大厅已收起</span>
-          <button onClick={() => setMinimized(false)}>恢复窗口</button>
+          <span>{t("windowRestoreText")}</span>
+          <button onClick={() => setMinimized(false)}>{t("windowRestoreButton")}</button>
         </div>
       ) : (
         <>
           <div className="client-tabbar">
             <span className="announcement">
-              ◆ 已开放五子棋、中国象棋、斗地主与中国麻将，入座并准备后开始游戏。
+              {t("announcement")}
             </span>
-            <div className="game-tabs" role="tablist" aria-label="游戏切换">
+            <div className="game-tabs" role="tablist" aria-label={t("gameLobby")}>
               {games.map((g) => (
                 <button
                   role="tab"
@@ -323,7 +404,7 @@ export default function App() {
                   onClick={() => selectGame(g.id)}
                 >
                   <span className={`tab-symbol ${g.id}`}>{g.symbol}</span>
-                  {g.name}
+                  {t(g.id)}
                 </button>
               ))}
             </div>
@@ -332,13 +413,13 @@ export default function App() {
               aria-expanded={showSidebar}
               onClick={() => setShowSidebar((v) => !v)}
             >
-              {showSidebar ? "返回棋桌" : "房间 / 玩家"}
+              {showSidebar ? t("backToTable") : t("mobileDirectory")}
             </button>
           </div>
           {bootError && (
             <div className="connection-banner" role="alert">
               {bootError}
-              <button onClick={() => open("login")}>重新登录</button>
+              <button onClick={() => open("login")}>{t("relogin")}</button>
               <button
                 disabled={busy}
                 onClick={() => {
@@ -349,13 +430,13 @@ export default function App() {
                     .finally(() => setBusy(false));
                 }}
               >
-                游客进入
+                {t("guestEnter")}
               </button>
             </div>
           )}
           {!connected && user && (
             <div className="connection-banner" role="status">
-              连接恢复中，断线后座位保留 30 秒。
+              {t("connectionLost")}
             </div>
           )}
           <div
@@ -365,12 +446,12 @@ export default function App() {
               <section className="table-pane">
                 <div className="hall-menubar">
                   <span>
-                    <b>{currentGame?.name ?? "全部游戏"}</b> /{" "}
+                    <b>{currentGame ? t(currentGame.id) : t("allGames")}</b> /{" "}
                     {room
                       ? room.name
                       : onlyFavorites
-                        ? "收藏的游戏桌"
-                        : "休闲大厅"}
+                        ? t("favoriteRooms")
+                        : t("leisureHall")}
                   </span>
                   <div>
                     <button
@@ -386,7 +467,7 @@ export default function App() {
                         if (next) send({ type: "join", roomId: next.id });
                       }}
                     >
-                      快速进桌
+                      {t("quickJoinTable")}
                     </button>
                     <button
                       disabled={
@@ -396,9 +477,9 @@ export default function App() {
                       }
                       onClick={() => open("create")}
                     >
-                      创建房间
+                      {t("createRoom")}
                     </button>
-                    <button onClick={() => open("help")}>游戏规则</button>
+                    <button onClick={() => open("help")}>{t("gameRules")}</button>
                   </div>
                 </div>
                 {!room && (
@@ -406,14 +487,14 @@ export default function App() {
                     <label className="hall-search">
                       <Search size={11} />
                       <input
-                        aria-label="搜索房间"
-                        placeholder="房间名 / 编号"
+                        aria-label={t("searchRoom")}
+                        placeholder={t("searchPlaceholder")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                       />
                       {search && (
                         <button
-                          aria-label="清空搜索"
+                          aria-label={t("clearSearch")}
                           onClick={() => setSearch("")}
                         >
                           <X size={10} />
@@ -426,20 +507,20 @@ export default function App() {
                         checked={hideFull}
                         onChange={(e) => setHideFull(e.target.checked)}
                       />
-                      隐藏满桌
+                      {t("hideFull")}
                     </label>
-                    <span>{filteredRooms.length} 张游戏桌</span>
+                    <span>{t("tableCountDisplay", { count: filteredRooms.length })}</span>
                     <button
                       className="sound-toggle"
-                      aria-label={music ? "关闭音乐" : "开启音乐"}
+                      aria-label={music ? t("disableMusic") : t("enableMusic")}
                       onClick={toggleMusic}
-                      title={music ? "背景音乐已开启" : "背景音乐已关闭"}
+                      title={music ? t("musicEnabled") : t("musicDisabled")}
                     >
                       🎵
                     </button>
                     <button
                       className="sound-toggle"
-                      aria-label={sound ? "关闭音效" : "开启音效"}
+                      aria-label={sound ? t("disableSound") : t("enableSound")}
                       onClick={toggleSound}
                     >
                       {sound ? <Volume2 size={12} /> : <VolumeX size={12} />}
@@ -497,7 +578,7 @@ export default function App() {
                     favorites={favorites}
                     connected={connected}
                     available={!currentGame || currentGame.available}
-                    gameName={currentGame?.name ?? "五子棋"}
+                    gameName={currentGame ? t(currentGame.id) : t("gomoku")}
                     toggleFavorite={(id) =>
                       setFavorites((old) =>
                         old.includes(id)
@@ -521,7 +602,7 @@ export default function App() {
                 />
               ) : (
                 <section className="client-chat">
-                  <p className="chat-empty">登录或以游客身份进入后即可聊天。</p>
+                  <p className="chat-empty">{t("chatPlaceholder")}</p>
                 </section>
               )}
             </div>
@@ -540,17 +621,17 @@ export default function App() {
               <i
                 className={connected ? "online-indicator" : "offline-indicator"}
               />
-              {connected ? "连接正常" : "连接中"}　在线人数：{online.length}
-              　游戏桌：{snapshot?.rooms.length ?? 0}
+              {connected ? t("connected") : t("connecting")}　{t("onlineCount", { count: online.length })}
+              　{t("tableCount", { count: snapshot?.rooms.length ?? 0 })}
             </span>
             <span>
               {currentGame?.id === "mahjong"
-                ? "中国麻将 · 大众简化规则"
+                ? t("mahjongRules")
                 : currentGame?.id === "doudizhu"
-                  ? "斗地主 · 经典叫分"
+                  ? t("doudizhuRules")
                   : currentGame?.id === "xiangqi"
-                    ? "中国象棋 · 娱乐规则"
-                    : "五子棋 · 自由规则"}{" "}
+                    ? t("xiangqiRules")
+                    : t("gomokuRules")}{" "}
               <time>{time}</time>
             </span>
           </footer>
@@ -560,7 +641,7 @@ export default function App() {
         <div className="toast" role="alert">
           <CircleHelp size={16} />
           {error}
-          <button onClick={() => setError("")}>关闭</button>
+          <button onClick={() => setError("")}>{t("closeError")}</button>
         </div>
       )}
       {dialog === "practice" &&
@@ -619,9 +700,9 @@ export default function App() {
         />
       )}
       {dialog === "create" && (
-        <Modal title="创建游戏房间" close={() => setDialog(null)}>
-          <h2>创建游戏桌</h2>
-          <p>创建后可复制邀请链接，好友进入后即可入座。</p>
+        <Modal title={t("createRoomTitle")} close={() => setDialog(null)}>
+          <h2>{t("createRoomHeading")}</h2>
+          <p>{t("createRoomDescription")}</p>
           <form
             className="auth-form"
             onSubmit={(event) => {
@@ -640,93 +721,65 @@ export default function App() {
             }}
           >
             <label>
-              房间名称
+              {t("roomName")}
               <input
                 name="roomName"
-                placeholder="输入房间名称"
+                placeholder={t("roomNamePlaceholder")}
                 required
                 minLength={2}
                 maxLength={16}
               />
             </label>
             <label>
-              游戏
+              {t("game")}
               <select
                 name="game"
                 defaultValue={
                   currentGame?.available ? currentGame.id : "gomoku"
                 }
               >
-                <option value="gomoku">五子棋 · 双人自由规则</option>
-                <option value="xiangqi">中国象棋 · 双人对弈</option>
-                <option value="mahjong">中国麻将 · 四人大众规则</option>
-                <option value="doudizhu">斗地主 · 三人经典叫分</option>
+                <option value="gomoku">{t("gomokuDouble")}</option>
+                <option value="xiangqi">{t("xiangqiDouble")}</option>
+                <option value="mahjong">{t("mahjongFour")}</option>
+                <option value="doudizhu">{t("doudizhuThree")}</option>
               </select>
             </label>
             <button type="submit" className="primary" disabled={!connected}>
               <Plus size={15} />
-              创建房间
+              {t("createButton")}
             </button>
           </form>
         </Modal>
       )}
       {dialog === "help" && (
-        <Modal title="游戏帮助" close={() => setDialog(null)}>
-          <h2>游戏操作说明</h2>
+        <Modal title={t("helpTitle")} close={() => setDialog(null)}>
+          <h2>{t("helpHeading")}</h2>
           {currentGame?.id === "mahjong" ? (
             <MahjongRules />
           ) : currentGame?.id === "doudizhu" ? (
             <ul className="ddz-rule-list">
-              <li>
-                三人入座并准备，54 张牌，每人 17 张、底牌 3 张；叫分时底牌隐藏。
-              </li>
-              <li>
-                轮流叫 1–3 分或不叫，必须高于前人；叫 3
-                分立即成为地主。都不叫则重新发牌。
-              </li>
-              <li>
-                地主先出，按座位顺序轮流接牌；两人不出后由最后出牌者重新领出。先出完者所属一方获胜。
-              </li>
-              <li>
-                支持单张、对子、三张、三带一/一对、顺子（至少 5 张）、连对（至少
-                3 对）、飞机及单/对翅膀、四带二/两对、炸弹和王炸。
-              </li>
-              <li>
-                顺子、连对和飞机主体不含 2
-                与王。单翅可以成对，不带双王，不带主体点数；对翅必须为不同对子。四带二可带一对，不带双王。
-              </li>
-              <li>
-                同牌型、同张数比较主体大小；炸弹压普通牌，王炸最大。炸弹、王炸、春天/反春翻倍，地主得失两份分，农民各一份。
-              </li>
-              <li>
-                点击手牌选中，支持提示、重选和不出；领出时必须出牌。娱乐计分，无充值与现金结算。
-              </li>
+              <li>{t("ddzHelp1")}</li>
+              <li>{t("ddzHelp2")}</li>
+              <li>{t("ddzHelp3")}</li>
+              <li>{t("ddzHelp4")}</li>
+              <li>{t("ddzHelp5")}</li>
+              <li>{t("ddzHelp6")}</li>
+              <li>{t("ddzHelp7")}</li>
             </ul>
           ) : currentGame?.id === "xiangqi" ? (
             <ul className="ddz-rule-list">
-              <li>
-                两人入座并准备，红方先行。点击自己的棋子，再点击绿点走棋，绿圈表示可吃子。
-              </li>
-              <li>
-                車走直线；馬走日且不能蹩腿；相／象走田、不能塞眼和过河；仕／士与帥／將不能离开九宫；炮须隔一个棋子吃子；兵／卒过河后可横走，不能后退。
-              </li>
-              <li>
-                走棋后不能使己方帥／將受攻击，也不能将帅照面。将死或困毙（无合法走法）均判负。
-              </li>
-              <li>
-                可求和、认输、翻转棋盘；联机不开放悔棋。练习提供红黑执方、电脑难度、提示与悔棋，不计战绩。
-              </li>
-              <li>
-                本版娱乐规则：同一局面出现三次，单方持续长将判该方负，其余重复局面判和；连续
-                120 步未吃子判和。复杂长捉、棋例裁定和比赛计时暂未实现。
-              </li>
+              <li>{t("xqHelp1")}</li>
+              <li>{t("xqHelp2")}</li>
+              <li>{t("xqHelp3")}</li>
+              <li>{t("xqHelp4")}</li>
+              <li>{t("xqHelp5")}</li>
             </ul>
           ) : (
             <>
               <ol className="help-steps">
                 <li>
-                  <strong>进入房间</strong>
-                  <p>点击大厅里的棋桌，或创建自己的房间。</p>
+                  <strong>{t("helpStep1Title")}</strong>
+                  <p>{t("helpStep1Desc")}</p>
                 </li>
                 <li>
                   <strong>选择席位并准备</strong>
@@ -745,72 +798,65 @@ export default function App() {
           )}
           <div className="help-note">
             <ShieldCheck size={19} />
-            <p>
-              刷新可恢复座位与本人手牌。断线暂停操作，30
-              秒未返回则所在方判负；斗地主叫分阶段退出取消本局，不计战绩。麻将中途退出会中止本局，仅退出者记负。
-            </p>
+            <p>{t("helpNote")}</p>
           </div>
-          <p className="muted">
-            同一浏览器的多个标签页共享账号。多人对局需要独立浏览器、配置文件或设备。选择五子棋、象棋、斗地主或麻将后点击「单机游戏」即可练习。
-          </p>
+          <p className="muted">{t("helpSameDevice")}</p>
           <button
             className="primary full-width"
             onClick={() => open("practice")}
           >
-            先和电脑练习一局
+            {t("practiceWithComputer")}
             <ArrowRight size={14} />
           </button>
         </Modal>
       )}
       {dialog === "about" && (
-        <Modal title="游戏设置与信息" close={() => setDialog(null)}>
+        <Modal title={t("aboutTitle")} close={() => setDialog(null)}>
           <div className="auth-icon">
             <Monitor size={29} />
           </div>
-          <h2>众乐游戏大厅</h2>
-          <p>独立棋牌游戏平台，与任何商业联众或 Lianzhong 平台无关联。</p>
+          <h2>{t("aboutHeading")}</h2>
+          <p>{t("aboutDescription")}</p>
           <div className="about-features">
             <span>
               <Check size={14} />
-              账号与战绩保存
+              {t("feature1")}
             </span>
             <span>
               <Check size={14} />
-              实时房间和大厅聊天
+              {t("feature2")}
             </span>
             <span>
               <Check size={14} />
-              五子棋、象棋、斗地主与麻将联机、练习
+              {t("feature3")}
             </span>
             <span>
               <Sparkles size={14} />
-              四款经典棋牌已开放
+              {t("feature4")}
             </span>
           </div>
           <p className="muted">
-            v0.1 · 本地开发版
+            {t("versionNote")}
             <br />
-            账号和战绩保留，服务重启会清空房间与进行中的棋局。
+            {t("versionDetail")}
           </p>
           <div className="dialog-actions">
             <button onClick={toggleMusic}>
-              🎵 音乐
-              {music ? "已开启" : "已关闭"}
+              🎵 {t("musicStatus", { status: music ? t("statusEnabled") : t("statusDisabled") })}
             </button>
             <button onClick={toggleSound}>
-              {sound ? <Volume2 size={14} /> : <VolumeX size={14} />}音效
-              {sound ? "已开启" : "已关闭"}
+              {sound ? <Volume2 size={14} /> : <VolumeX size={14} />}{t("soundStatus", { status: sound ? t("statusEnabled") : t("statusDisabled") })}
             </button>
             {!me?.guest && (
               <button
                 disabled={busy || !!activeMatch}
                 onClick={() => void logout()}
               >
-                退出账号
+                {t("logout")}
               </button>
             )}
             <button className="primary" onClick={() => setDialog(null)}>
-              回到大厅
+              {t("backToLobby2")}
             </button>
           </div>
         </Modal>

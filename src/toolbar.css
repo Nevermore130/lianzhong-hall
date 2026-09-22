@@ -231,6 +231,87 @@
   color: #404040;
   white-space: nowrap;
 }
+.language-switcher {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 9px;
+  border-left: 1px solid #808080;
+  box-shadow: -1px 0 #ffffff;
+}
+.language-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  min-width: 58px;
+  height: 45px;
+  padding: 3px 6px;
+  border: 1px solid #ffffff;
+  border-right-color: #000000;
+  border-bottom-color: #000000;
+  box-shadow: inset -1px -1px #808080;
+  border-radius: 0;
+  background: var(--surface-grain) #c0c0c0;
+  color: #000000;
+  font-size: 10px;
+  text-shadow: none;
+}
+.language-button:hover:not(:disabled) {
+  background: var(--surface-grain) #cacaca;
+}
+.language-button:active:not(:disabled) {
+  border-color: #808080;
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
+  box-shadow: inset 1px 1px #000000;
+  padding: 4px 5px 2px 7px;
+}
+.language-button > span {
+  line-height: 12px;
+  white-space: nowrap;
+}
+.language-menu {
+  position: fixed;
+  top: 76px;
+  right: auto;
+  background: var(--surface-grain) #c0c0c0;
+  border: 2px solid #ffffff;
+  border-right-color: #808080;
+  border-bottom-color: #808080;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 120px;
+  padding: 2px;
+}
+.language-menu button {
+  display: block;
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #000000;
+  text-align: left;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.language-menu button:hover {
+  background: var(--surface-grain) #d0d0d0;
+  border: 1px solid #808080;
+}
+.language-menu button.active {
+  background: #000080;
+  color: #ffffff;
+  border: 1px solid #000080;
+}
+.language-menu button.active:hover {
+  background: #000090;
+  border: 1px solid #000090;
+}
 .header-account button {
   background: transparent;
   color: #000080;
@@ -346,6 +427,18 @@
   .header-account {
     display: none;
   }
+  .language-switcher {
+    padding-left: 6px;
+  }
+  .language-button {
+    min-width: 54px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 9px;
+  }
+  .language-button:active:not(:disabled) {
+    padding: 4px 4px 2px 6px;
+  }
   .announcement {
     max-width: 33%;
     font-size: 9px;
@@ -419,6 +512,29 @@
   .main-toolbar nav > button:nth-child(5),
   .main-toolbar nav > button:nth-child(7) {
     margin-left: 3px;
+  }
+  .language-switcher {
+    padding-left: 4px;
+  }
+  .language-button {
+    min-width: 48px;
+    padding: 3px 4px;
+    font-size: 9px;
+    gap: 2px;
+  }
+  .language-button:active:not(:disabled) {
+    padding: 4px 3px 2px 5px;
+  }
+  .language-button svg {
+    width: 11px;
+    height: 11px;
+  }
+  .language-menu {
+    min-width: 100px;
+  }
+  .language-menu button {
+    padding: 3px 6px;
+    font-size: 10px;
   }
   .client-tabbar {
     padding-left: 3px;

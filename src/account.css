@@ -260,3 +260,78 @@
     padding: 10px;
   }
 }
+.leaderboard {
+  padding: 8px;
+}
+
+.leaderboard-scroll {
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid #808080;
+  background: #ffffff;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Tahoma', sans-serif;
+  font-size: 11px;
+}
+
+.leaderboard-table thead {
+  position: sticky;
+  top: 0;
+  background: #c0c0c0;
+  border-bottom: 1px solid #808080;
+}
+
+.leaderboard-table th {
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: bold;
+  border-right: 1px solid #808080;
+}
+
+.leaderboard-table th:last-child {
+  border-right: none;
+}
+
+.leaderboard-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: #e0e0e0;
+}
+
+.leaderboard-table .top-rank {
+  background: #fffacd;
+}
+
+.leaderboard-table .top-rank:hover {
+  background: #fff4b0;
+}
+
+.leaderboard-table .rank-column {
+  text-align: center;
+  width: 60px;
+  font-weight: bold;
+}
+
+.leaderboard-table .player-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.leaderboard-table .points-cell {
+  font-weight: bold;
+  color: #000080;
+}
+
+.loading-text {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}

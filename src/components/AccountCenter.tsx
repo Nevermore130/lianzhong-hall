@@ -92,7 +92,7 @@ export function AccountCenter({
           <div>
             <strong>{user.name}</strong>
             <span>
-              正式玩家　{user.wins} 胜 / {user.losses} 负
+              正式玩家　积分 {user.points}　{user.wins} 胜 / {user.losses} 负
             </span>
           </div>
         </div>
@@ -171,6 +171,8 @@ export function AccountCenter({
                       <dd>{profile.id}</dd>
                       <dt>创建时间</dt>
                       <dd>{date(profile.createdAt)}</dd>
+                      <dt>积分</dt>
+                      <dd>{profile.points}</dd>
                       <dt>战绩</dt>
                       <dd>
                         {profile.wins} 胜 / {profile.losses} 负

@@ -84,7 +84,7 @@ export function MahjongTable({
   const status = !match
     ? "四位玩家入座并准备后发牌"
     : !active
-      ? match.lastAction
+      ? (match.lastAction || "本局结束") + " · 积分已更新"
       : !connected
         ? "连接中，请稍候"
         : !allOnline

@@ -1,5 +1,6 @@
 .board-frame {
-  width: min(100%, 440px);
+  width: min(100%, 440px, 90cqw);
+  max-height: min(440px, 90cqh);
   margin: 12px auto;
   padding: 5px;
   border: 5px solid #b8894c;
@@ -11,6 +12,10 @@
     inset 0 0 0 1px #f8dc9980,
     0 1px 0 1px #402e24,
     2px 4px 5px #142b4059;
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: 1;
+  align-self: center;
 }
 .board-surface {
   display: grid;

@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 export function Modal({
   title,
   close,
@@ -11,6 +13,7 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDialogElement>(null),
     onClose = useRef(close);
   onClose.current = close;
@@ -35,7 +38,7 @@ export function Modal({
     >
       <div className="window-title">
         <span>▣ &nbsp; {title}</span>
-        <button aria-label="关闭弹窗" onClick={close}>
+        <button aria-label={t("close")} onClick={close}>
           <X size={14} />
         </button>
       </div>

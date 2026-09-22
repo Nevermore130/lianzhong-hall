@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Yellow face circle -->
+  <circle cx="50" cy="50" r="48" fill="#FFD700" stroke="#000" stroke-width="2"/>
+  
+    <circle cx="50" cy="45" r="30" fill="#FFD700" stroke="#000" stroke-width="2"/>
+    <ellipse cx="35" cy="40" rx="4" ry="7" fill="#000"/>
+    <ellipse cx="65" cy="40" rx="4" ry="7" fill="#000"/>
+    <path d="M 32 55 Q 50 65 68 55" fill="none" stroke="#000" stroke-width="3"/>
+    <path d="M 15 50 Q 25 45 30 50 Q 25 55 15 60" fill="#FFD700" stroke="#000" stroke-width="2"/>
+    <path d="M 85 50 Q 75 45 70 50 Q 75 55 85 60" fill="#FFD700" stroke="#000" stroke-width="2"/>
+  
+</svg>

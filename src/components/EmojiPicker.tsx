@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { parseTwemoji, emojiList } from "../lib/twemoji";
+import { getStickerPath, stickerList } from "../lib/stickers";
 
 type EmojiPickerProps = {
-  onSelect: (emoji: string) => void;
+  onSelect: (sticker: string) => void;
   onClose: () => void;
 };
 
 export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
-  const [category, setCategory] = useState<keyof typeof emojiList>("表情");
+  const [category, setCategory] = useState<keyof typeof stickerList>("常用");
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape key
@@ -41,14 +41,15 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
     };
   }, [onClose]);
 
-  const handleEmojiClick = (emoji: string, event: MouseEvent) => {
+  const handleStickerClick = (name: string, event: MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    onSelect(emoji);
+    // Insert shortcode format [微笑]
+    onSelect(`[${name}]`);
     onClose();
   };
 
-  const categories = Object.keys(emojiList) as Array<keyof typeof emojiList>;
+  const categories = Object.keys(stickerList) as Array<keyof typeof stickerList>;
 
   return (
     <div className="emoji-picker" ref={containerRef}>
@@ -75,16 +76,28 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
         </button>
       </div>
       <div className="emoji-picker-grid">
-        {emojiList[category].map((emoji, index) => (
-          <button
-            key={`${emoji}-${index}`}
-            className="emoji-picker-item"
-            onClick={(event) => handleEmojiClick(emoji, event)}
-            type="button"
-            aria-label={emoji}
-            dangerouslySetInnerHTML={{ __html: parseTwemoji(emoji) }}
-          />
-        ))}
+        {stickerList[category].map((name, index) => {
+          const path = getStickerPath(name);
+          return (
+            <button
+              key={`${name}-${index}`}
+              className="emoji-picker-item"
+              onClick={(event) => handleStickerClick(name, event)}
+              type="button"
+              title={name}
+              aria-label={name}
+            >
+              {path && (
+                <img
+                  src={path}
+                  alt={name}
+                  className="sticker-preview"
+                  loading="lazy"
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

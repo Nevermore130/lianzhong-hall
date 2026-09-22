@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Yellow face circle -->
+  <circle cx="50" cy="50" r="48" fill="#FFD700" stroke="#000" stroke-width="2"/>
+  
+    <path d="M 50 75 L 30 50 Q 25 40 25 32 Q 25 20 35 20 Q 45 20 50 28 Q 55 20 65 20 Q 75 20 75 32 Q 75 40 70 50 Z" fill="#FF1493" stroke="#C71585" stroke-width="2"/>
+  
+</svg>

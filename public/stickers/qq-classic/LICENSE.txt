@@ -1,0 +1,11 @@
+Original Yellow-Face Stickers for Lianzhong Hall
+================================================
+
+These sticker images are original artwork created specifically for this project.
+They are inspired by the classic QQ yellow-face style but are NOT Tencent IP.
+
+Copyright (c) 2026 Lianzhong Hall Project
+Licensed under MIT License - same as the codebase.
+
+The visual style (round yellow faces with bold outlines) is a common design
+pattern and these specific implementations are original creative works.

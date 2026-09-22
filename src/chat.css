@@ -119,15 +119,17 @@
   background: #e6e6e6;
   border-color: #999;
 }
-.emoji-picker-item img.emoji {
-  width: 20px;
-  height: 20px;
+.emoji-picker-item img.emoji,
+.emoji-picker-item img.sticker-preview {
+  width: 24px;
+  height: 24px;
   display: inline-block;
   vertical-align: middle;
 }
-.chat-text img.emoji {
-  width: 18px;
-  height: 18px;
+.chat-text img.emoji,
+.chat-text img.sticker {
+  width: 22px;
+  height: 22px;
   display: inline-block;
   vertical-align: middle;
   margin: 0 1px;
@@ -295,7 +297,13 @@
   .emoji-picker-item {
     font-size: 18px;
   }
-  .emoji-picker-item img.emoji {
+  .emoji-picker-item img.emoji,
+  .emoji-picker-item img.sticker-preview {
+    width: 20px;
+    height: 20px;
+  }
+  .chat-text img.emoji,
+  .chat-text img.sticker {
     width: 18px;
     height: 18px;
   }

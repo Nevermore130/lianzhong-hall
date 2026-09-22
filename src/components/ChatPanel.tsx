@@ -18,7 +18,7 @@ import { Modal } from "./Modal";
 import { mergeMessages, mergeHistory, nearBottom } from "../lib/chat-state";
 import { useChatOutbox, type ChatTransport } from "../lib/useChatOutbox";
 import { EmojiPicker } from "./EmojiPicker";
-import { parseTwemoji } from "../lib/twemoji";
+import { parseStickers } from "../lib/stickers";
 
 type History = { messages: ChatMessage[]; hasMore: boolean };
 const time = (timestamp: number) =>
@@ -252,10 +252,10 @@ export function ChatPanel({
   function draft(text: string) {
     setDrafts((old) => ({ ...old, [channel]: text.slice(0, 200) }));
   }
-  function insertEmoji(emoji: string) {
+  function insertSticker(shortcode: string) {
     const input = composerRef.current;
     if (!input) {
-      draft((drafts[channel] ?? "") + emoji);
+      draft((drafts[channel] ?? "") + shortcode);
       return;
     }
     const start = input.selectionStart ?? 0;
@@ -263,11 +263,11 @@ export function ChatPanel({
     const currentText = drafts[channel] ?? "";
     const before = currentText.slice(0, start);
     const after = currentText.slice(end);
-    const newText = before + emoji + after;
+    const newText = before + shortcode + after;
     draft(newText);
-    // Restore cursor position after emoji
+    // Restore cursor position after sticker shortcode
     setTimeout(() => {
-      const newPosition = start + emoji.length;
+      const newPosition = start + shortcode.length;
       input.setSelectionRange(newPosition, newPosition);
       input.focus();
     }, 0);
@@ -352,7 +352,7 @@ export function ChatPanel({
         </button>
         {showEmojiPicker && (
           <EmojiPicker
-            onSelect={insertEmoji}
+            onSelect={insertSticker}
             onClose={() => setShowEmojiPicker(false)}
           />
         )}
@@ -412,7 +412,7 @@ export function ChatPanel({
                 </b>
                 <span
                   className="chat-text"
-                  dangerouslySetInnerHTML={{ __html: parseTwemoji(message.text) }}
+                  dangerouslySetInnerHTML={{ __html: parseStickers(message.text) }}
                 />
                 {message.userId === user.id && (
                   <small className="chat-sent">已发送</small>
@@ -430,7 +430,7 @@ export function ChatPanel({
                 <b>{user.name}[我]：</b>
                 <span
                   className="chat-text"
-                  dangerouslySetInnerHTML={{ __html: parseTwemoji(message.text) }}
+                  dangerouslySetInnerHTML={{ __html: parseStickers(message.text) }}
                 />
                 <small>
                   {message.status === "sending" ? "发送中…" : "发送失败"}

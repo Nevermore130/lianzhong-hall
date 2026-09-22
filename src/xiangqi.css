@@ -7,15 +7,15 @@
   flex-direction: column;
 }
 .client-left:has(.xq-room-view) {
-  grid-template-rows: minmax(0, 1fr) 104px;
+  grid-template-rows: minmax(0, 1fr) 96px;
 }
 .xq-room-view .xq-board {
-  max-width: min(540px, 90cqw, calc(90cqh - 200px));
+  max-width: min(540px, 85cqw, calc(85cqh - 180px));
   flex: 1;
   min-height: 0;
 }
 .xq-room-view .xq-seats {
-  margin: 5px auto;
+  margin: 4px auto;
 }
 .xq-room-view .xq-seats .seat-card {
   padding: 4px 7px;
@@ -24,10 +24,10 @@
   width: 30px;
 }
 .xq-room-view .xq-history {
-  height: 108px;
+  height: 96px;
 }
 .xq-room-view .xq-position {
-  margin: 7px auto;
+  margin: 6px auto;
 }
 .retro-dialog.wide:has(.xq-position) {
   width: 800px;
@@ -182,7 +182,7 @@
   display: none;
 }
 .xq-history {
-  height: 238px;
+  height: 200px;
   overflow-y: auto;
   list-style: none;
   padding: 8px;

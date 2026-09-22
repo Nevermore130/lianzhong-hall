@@ -139,7 +139,7 @@
   }
   .client-left,
   .client-left:has(.xq-room-view) {
-    grid-template-rows: minmax(0, 1fr) 136px;
+    grid-template-rows: minmax(0, 1fr) 128px;
   }
   .client-right {
     display: none;
@@ -376,9 +376,9 @@
   }
   .board-frame {
     width: 100%;
-    max-width: min(440px, 90cqw);
-    max-height: min(440px, calc(90cqh - 20px));
-    margin: 8px auto;
+    max-width: min(440px, 85cqw);
+    max-height: min(440px, calc(85cqh - 16px));
+    margin: 6px auto;
     flex: 1;
     min-height: 0;
   }
@@ -576,21 +576,21 @@
   }
   .client-left:has(.mj-room-view),
   .client-left:has(.ddz-room-view) {
-    grid-template-rows: minmax(0, 1fr) 112px;
+    grid-template-rows: minmax(0, 1fr) 104px;
   }
   .live-room-scroll {
     container-type: size;
     scroll-padding-bottom: 56px;
   }
   .xq-room-view .xq-board {
-    max-width: min(100%, max(260px, calc((100cqh - 256px) * 0.9)));
+    max-width: min(100%, max(260px, calc((100cqh - 240px) * 0.9)));
   }
   .room-view .board-frame {
-    max-width: min(100%, max(280px, calc(100cqh - 220px)));
+    max-width: min(100%, max(280px, calc(100cqh - 200px)));
   }
   .mj-game .mj-felt,
   .ddz-game .ddz-felt {
-    min-height: 240px;
+    min-height: 220px;
   }
 }
 
@@ -668,7 +668,7 @@
     grid-column: 1 / -1;
   }
   .retro-dialog .ddz-felt {
-    min-height: 210px;
+    min-height: 190px;
     height: calc(var(--visible-height, 100dvh) - 190px);
   }
   .retro-dialog .ddz-player {

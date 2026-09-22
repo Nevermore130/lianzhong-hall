@@ -57,7 +57,7 @@
   grid-template-rows: auto 1fr auto;
   align-items: center;
   gap: 9px;
-  min-height: 280px;
+  min-height: 240px;
   padding: 15px;
   background: #184734 url("/assets/mahjong-v1/felt.webp") center/cover;
   border: 8px ridge #745231;
@@ -217,10 +217,10 @@
   display: flex;
   gap: 5px;
   overflow-x: auto;
-  padding: 16px 3px 12px;
+  padding: 14px 3px 10px;
   scroll-padding: 3px;
   overscroll-behavior-x: contain;
-  min-height: 82px;
+  min-height: 76px;
 }
 .mj-game .mj-hand-tile {
   display: block;
@@ -339,7 +339,7 @@
   color: #626558;
 }
 .retro-dialog .mj-felt {
-  min-height: 300px;
+  min-height: 260px;
 }
 .retro-dialog:has(.mj-game) {
   width: min(850px, calc(100vw - 24px));
@@ -415,7 +415,7 @@
     gap: 6px;
     padding: 8px;
     border-width: 5px;
-    min-height: 318px;
+    min-height: 260px;
   }
   .mj-player {
     padding: 5px;
@@ -503,7 +503,7 @@
   .retro-dialog .mj-felt {
     grid-column: 1;
     grid-row: 2 / 4;
-    min-height: 228px;
+    min-height: 200px;
     grid-template-columns: minmax(60px, 1fr) minmax(76px, 1.1fr) minmax(
         60px,
         1fr

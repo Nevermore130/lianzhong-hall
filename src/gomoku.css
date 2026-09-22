@@ -1,7 +1,7 @@
 .board-frame {
-  width: min(100%, 440px, 85cqw);
-  max-height: min(440px, 72cqh);
-  margin: 8px auto;
+  width: min(100%, 440px, 90cqw);
+  max-height: min(440px, 90cqh);
+  margin: 12px auto;
   padding: 5px;
   border: 5px solid #b8894c;
   border-color: #d6a466 #8c5c2f #704725 #c19355;
@@ -171,10 +171,9 @@
 }
 @media (max-width: 520px) {
   .board-frame {
-    margin: 6px auto;
+    margin: 10px auto;
     padding: 3px;
     border-width: 4px;
-    max-height: min(400px, 82cqh);
   }
   .board-surface {
     grid-template-columns: 11px minmax(0, 1fr) 11px;

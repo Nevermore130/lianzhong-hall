@@ -44,7 +44,7 @@
 }
 .ddz-felt {
   position: relative;
-  min-height: 230px;
+  min-height: 260px;
   border: 7px solid;
   border-color: #b68c55 #69452d #563c29 #bd945e;
   background:
@@ -205,7 +205,7 @@
 .ddz-hand-area {
   border: 1px solid #789188;
   border-top: 0;
-  padding: 8px 12px 0;
+  padding: 9px 12px 0;
   background: linear-gradient(#1c413c, #183932);
 }
 .ddz-hand-heading {
@@ -225,8 +225,8 @@
   grid-template-columns: repeat(var(--card-count), minmax(0, 1fr));
   margin: 0 auto;
   width: min(100%, calc(var(--card-count) * 30px + var(--card-width) - 30px));
-  padding: 6px calc(var(--card-width) - 18px) 4px 0;
-  min-height: calc(var(--card-width) * 1.45 + 10px);
+  padding: 7px calc(var(--card-width) - 18px) 5px 0;
+  min-height: calc(var(--card-width) * 1.45 + 12px);
 }
 .ddz-swipe-hint {
   display: none;
@@ -305,7 +305,7 @@
   padding: 12px;
 }
 .retro-dialog .ddz-felt {
-  min-height: 250px;
+  min-height: 280px;
 }
 .ddz-player .score-win {
   color: #f9d47a;
@@ -381,7 +381,7 @@
   }
   .ddz-felt,
   .retro-dialog .ddz-felt {
-    min-height: 250px;
+    min-height: 285px;
     border-width: 4px;
   }
   .ddz-table-play {
@@ -394,7 +394,7 @@
     width: min(100%, calc(var(--card-count) * 18px + 14px));
   }
   .ddz-hand-area {
-    padding: 8px 7px 0;
+    padding: 9px 7px 0;
   }
   .ddz-controls {
     gap: 7px;

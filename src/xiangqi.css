@@ -10,7 +10,7 @@
   grid-template-rows: minmax(0, 1fr) 104px;
 }
 .xq-room-view .xq-board {
-  max-width: min(540px, 90cqw, calc(90cqh - 200px));
+  max-width: min(540px, 90cqw, max(240px, calc(90cqh - 200px)));
   flex: 1;
   min-height: 0;
 }

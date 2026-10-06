@@ -2,6 +2,18 @@
 
 本指南适用于在单台 VPS 上部署众乐游戏大厅，基于香港腾讯云轻量服务器的真实生产环境编写。
 
+## 生产环境概览
+
+**当前生产环境 (zhongle.online)** 配置：
+
+- **VPS**: 腾讯云香港轻量服务器，Ubuntu 24.04，IP `43.160.228.187`
+- **域名**: `zhongle.online` 和 `www.zhongle.online`（Cloudflare DNS，灰云模式）
+- **部署路径**: `/var/www/lianzhong-hall`
+- **systemd 服务**: `lianzhong-hall`（后端监听 `127.0.0.1:3088`）
+- **反向代理**: Caddy 2，自动 HTTPS（Let's Encrypt 证书自动续期）
+- **静态资源**: Caddy 直接提供 `/assets/*`，带 1 年 immutable 缓存 + gzip/zstd 压缩
+- **备份**: 每日凌晨 3 点 SQLite 自动备份至 `/opt/lianzhong-backups`（保留 30 天）
+
 ## 架构说明
 
 ### 技术栈
@@ -26,9 +38,9 @@
 
 ### 安装路径
 
-**生产环境**使用 `/var/www/lianzhong-hall` 作为部署路径，与 Caddyfile 模板保持一致。
+**生产环境推荐路径**: `/var/www/lianzhong-hall`（与 Caddyfile 模板保持一致）
 
-部署脚本默认使用 `/opt/lianzhong-hall`。如需使用生产路径，可通过环境变量覆盖：
+部署脚本 `deploy/install.sh` 默认使用 `/opt/lianzhong-hall`，可通过环境变量 `INSTALL_DIR` 覆盖：
 
 ```bash
 INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
@@ -41,8 +53,8 @@ INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 
 **注意**：
 - `deploy/Caddyfile.https` 和 `deploy/Caddyfile.http` 中的 `root *` 路径默认为 `/var/www/lianzhong-hall`
-- 如使用其他路径，需同步修改 Caddyfile 和 systemd 服务配置中的路径
-- 本文档示例路径为了便于演示可能混合使用 `/opt/lianzhong-hall` 和 `/var/www/lianzhong-hall`，实际部署时以你选择的路径为准
+- 使用其他路径时，需同步修改 Caddyfile 中的路径（`install.sh` 会自动调整 systemd 服务路径）
+- 本文档以生产路径 `/var/www/lianzhong-hall` 为准，其他路径请自行替换
 
 ## 推荐部署环境
 
@@ -56,10 +68,16 @@ INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 ### 域名与 CDN
 - **域名**: 推荐海外注册商（如 Cloudflare, Namecheap）托管海外服务器，无需 ICP 备案
 - **DNS**: 建议使用 Cloudflare DNS，A 记录指向服务器 IP
-- **CDN 代理**: 
-  - ⚠️ **初期建议灰色云朵（仅 DNS）**，不启用 Cloudflare 橙色云（CDN 代理）
-  - 原因: WebSocket 穿透需要额外配置，橙色云可能导致连接问题
-  - 确认 WebSocket 稳定后可启用橙色云以获得 DDoS 防护和加速
+- **CDN 代理设置**: 
+  - ✅ **推荐灰色云朵（DNS only，仅解析）**，不启用 Cloudflare 橙色云（CDN 代理）
+  - **原因**: 生产环境实测发现橙色云代理会导致：
+    - 源站回源不稳定，频繁出现 522 错误（连接超时）
+    - 首次加载可能需要数秒（冷启动 + 回源延迟）
+  - **解决方案**: 切换到灰云 + Caddy Let's Encrypt 证书，直连源站，问题完全解决
+  - ⚠️ 如需启用橙色云（DDoS 防护/加速），必须：
+    1. Cloudflare SSL/TLS 模式设为 `Full (strict)` 或 `Full`
+    2. 验证 WebSocket `/ws` 路径可正常连接
+    3. 监控 522 错误和延迟，如有问题回退灰云
 
 ### 安全注意事项
 - 腾讯云扫码安全登录必须关闭（阻止自动化 SSH 连接），建议改用 SSH 密钥认证
@@ -103,9 +121,9 @@ npm -v
 ### 3. 克隆代码库
 
 ```bash
-# 克隆到 /opt 目录（需要 sudo）
-sudo mkdir -p /opt
-cd /opt
+# 克隆到生产路径（推荐）
+sudo mkdir -p /var/www
+cd /var/www
 sudo git clone <你的代码库 URL> lianzhong-hall
 sudo chown -R ubuntu:ubuntu lianzhong-hall
 
@@ -125,11 +143,11 @@ ls -lh dist/
 
 ### 5. 配置环境变量
 
-**推荐方式**: 创建 `/opt/lianzhong-hall/.env` 文件（或 `$INSTALL_DIR/.env`）配置所有环境变量。
+**推荐方式**: 创建 `/var/www/lianzhong-hall/.env` 文件配置所有环境变量。
 
 ```bash
 # 创建 .env 文件
-sudo nano /opt/lianzhong-hall/.env
+sudo nano /var/www/lianzhong-hall/.env
 ```
 
 示例配置：
@@ -163,12 +181,12 @@ MAIL_MODE=disabled
 | `SMTP_PASSWORD`         | SMTP | SMTP 密码                                                                                 | `your-app-password`             |
 
 **关键配置说明**:
-- `.env` 为配置源，优先级高于 systemd 服务文件中的默认值
-- `APP_ORIGIN` 必须与浏览器实际访问地址的协议、域名/IP、端口完全一致
+- **在 `.env` 中配置所有环境变量**，`.env` 文件（通过 systemd 的 `EnvironmentFile=` 加载）会覆盖服务文件中 `Environment=` 设置的默认值
+- `APP_ORIGIN` **必须在 `.env` 中设置**，与浏览器实际访问地址的协议、域名/IP、端口完全一致
 - HTTPS 环境必须设置 `APP_ORIGIN=https://...`，此时会话 Cookie 自动添加 `Secure` 标志
 - HTTP 环境（如纯 IP 访问）必须设置 `APP_ORIGIN=http://...`，不会设置 `Secure`，WebSocket 才能正常工作
 - 生产环境默认 `MAIL_MODE=disabled`，未配置 SMTP 时绑定邮箱功能不可用
-- **不要在 systemd 服务文件中设置 `APP_ORIGIN`**，systemd 的 `Environment=` 会覆盖 `.env` 中的配置
+- **重要**: 不要在 systemd 服务文件（`/etc/systemd/system/lianzhong-hall.service`）中设置 `APP_ORIGIN`，统一在 `.env` 中配置以保持单一事实来源，避免混淆
 
 ### 6. 安装 Caddy
 
@@ -201,7 +219,7 @@ caddy version
 
 ```bash
 # 1. 复制生产环境 HTTPS 配置模板
-sudo cp /opt/lianzhong-hall/deploy/Caddyfile.https /etc/caddy/Caddyfile
+sudo cp /var/www/lianzhong-hall/deploy/Caddyfile.https /etc/caddy/Caddyfile
 
 # 2. 编辑配置，修改域名和邮箱
 sudo nano /etc/caddy/Caddyfile
@@ -210,7 +228,7 @@ sudo nano /etc/caddy/Caddyfile
 需要修改的内容：
 - 第 2 行：`email admin@zhongle.online` 改为你的管理邮箱（用于 Let's Encrypt 续期通知）
 - 最后一行：`zhongle.online, www.zhongle.online` 改为你的域名（支持多个域名用逗号分隔）
-- 如果安装路径不是 `/var/www/lianzhong-hall`，需修改 `root *` 路径
+- 如果安装路径不是 `/var/www/lianzhong-hall`，需修改配置中的 `root *` 路径
 
 ```bash
 # 3. 重启 Caddy（首次会自动申请证书）
@@ -233,7 +251,7 @@ Caddy 会自动续期证书，无需手动干预。
 
 ```bash
 # 复制 HTTP 配置模板
-sudo cp /opt/lianzhong-hall/deploy/Caddyfile.http /etc/caddy/Caddyfile
+sudo cp /var/www/lianzhong-hall/deploy/Caddyfile.http /etc/caddy/Caddyfile
 
 # 如需修改路径，编辑配置
 sudo nano /etc/caddy/Caddyfile
@@ -253,15 +271,16 @@ APP_ORIGIN=http://203.0.113.10  # 替换为你的服务器 IP
 
 ```bash
 # 复制服务单元模板
-sudo cp /opt/lianzhong-hall/deploy/lianzhong-hall.service /etc/systemd/system/
+sudo cp /var/www/lianzhong-hall/deploy/lianzhong-hall.service /etc/systemd/system/
 
-# 编辑服务配置，设置正确的 APP_ORIGIN 和其他环境变量
+# 如安装路径不是 /var/www/lianzhong-hall，需编辑服务配置调整路径
 sudo nano /etc/systemd/system/lianzhong-hall.service
 
-# 关键修改：
-# - APP_ORIGIN=http://YOUR_IP_OR_DOMAIN_HERE  改为实际地址
-# - MAIL_MODE 根据需要设置为 disabled 或 smtp
-# - 如使用 SMTP，取消注释 SMTP_* 变量并填入真实值
+# 关键说明：
+# - APP_ORIGIN 等环境变量应在 /var/www/lianzhong-hall/.env 中配置
+# - .env 文件（EnvironmentFile=）会覆盖服务文件中 Environment= 的默认值
+# - 不要在服务文件中设置 APP_ORIGIN，统一在 .env 配置以避免混淆
+# - 服务文件的 Environment= 仅提供安全的默认值（如 PORT、HOST、MAIL_MODE）
 
 # 重载 systemd 配置
 sudo systemctl daemon-reload
@@ -292,14 +311,14 @@ sudo ufw status
 ### 10. 配置自动备份
 
 ```bash
-# 创建备份目录
+# 备份目录默认为 /opt/lianzhong-backups（install.sh 使用此路径）
 sudo mkdir -p /opt/lianzhong-backups
 sudo chown ubuntu:ubuntu /opt/lianzhong-backups
 
 # 添加每日备份 cron 任务（凌晨 3 点）
 crontab -e
 # 添加以下行：
-0 3 * * * sqlite3 /opt/lianzhong-hall/data/hall.sqlite ".backup /opt/lianzhong-backups/hall-$(date +\%Y\%m\%d).sqlite" && find /opt/lianzhong-backups -name 'hall-*.sqlite' -mtime +30 -delete
+0 3 * * * sqlite3 /var/www/lianzhong-hall/data/hall.sqlite ".backup /opt/lianzhong-backups/hall-$(date +\%Y\%m\%d).sqlite" && find /opt/lianzhong-backups -name 'hall-*.sqlite' -mtime +30 -delete
 ```
 
 备份策略：每日备份，保留 30 天。
@@ -336,14 +355,19 @@ curl http://127.0.0.1:3088/api/health
 ⚠️ **重要**: 服务重启会断开所有在线玩家并清空内存中的房间，建议在低峰期进行。
 
 ```bash
-# 方式 1: 使用自动化脚本（推荐，路径自动检测）
-cd /var/www/lianzhong-hall  # 切换到你的实际安装路径
-bash deploy/release.sh
+# 方式 1: 使用自动化脚本（推荐）
+# release.sh 从脚本所在位置自动检测安装目录（deploy/ 的父目录）
+cd /var/www/lianzhong-hall
+bash deploy/release.sh              # 更新到最新版本
+bash deploy/release.sh v1.2.3       # 更新到指定标签
+bash deploy/release.sh main         # 切换到指定分支
+bash deploy/release.sh abc1234      # 回滚到指定 commit
 
-# 检出特定版本（可选）
-bash deploy/release.sh v1.2.3
+# 脚本会在检测到的代码库（deploy/release.sh 所在的仓库）中执行操作
+# 也可通过环境变量覆盖：INSTALL_DIR=/custom/path bash deploy/release.sh
 
 # 方式 2: 手动更新
+cd /var/www/lianzhong-hall
 git fetch origin
 git pull origin main  # 或你的生产分支
 npm ci
@@ -365,7 +389,12 @@ sudo journalctl -u lianzhong-hall -n 100
 ### 回滚版本
 
 ```bash
-cd /opt/lianzhong-hall
+# 方式 1: 使用 release.sh 回滚到指定 commit（推荐）
+cd /var/www/lianzhong-hall
+bash deploy/release.sh <commit-sha>
+
+# 方式 2: 手动回滚
+cd /var/www/lianzhong-hall
 
 # 查看历史版本
 git log --oneline -10
@@ -391,14 +420,14 @@ sudo systemctl restart lianzhong-hall
 
 ```bash
 # 备份数据库
-cd /opt/lianzhong-hall
+cd /var/www/lianzhong-hall
 sqlite3 data/hall.sqlite ".backup data/hall-backup-$(date +%Y%m%d-%H%M%S).sqlite"
 
 # 备份整个应用（不包括 node_modules）
 tar -czf ~/lianzhong-backup-$(date +%Y%m%d).tar.gz \
   --exclude='node_modules' \
   --exclude='.git' \
-  /opt/lianzhong-hall
+  /var/www/lianzhong-hall
 ```
 
 ### 恢复数据库
@@ -408,7 +437,7 @@ tar -czf ~/lianzhong-backup-$(date +%Y%m%d).tar.gz \
 sudo systemctl stop lianzhong-hall
 
 # 恢复备份（替换当前数据库）
-cp /opt/lianzhong-backups/hall-20260918.sqlite /opt/lianzhong-hall/data/hall.sqlite
+cp /opt/lianzhong-backups/hall-20260918.sqlite /var/www/lianzhong-hall/data/hall.sqlite
 
 # 启动服务
 sudo systemctl start lianzhong-hall
@@ -418,19 +447,69 @@ sudo systemctl start lianzhong-hall
 
 ```bash
 # 旧服务器：备份
-cd /opt/lianzhong-hall
+cd /var/www/lianzhong-hall
 sqlite3 data/hall.sqlite ".backup /tmp/hall-migration.sqlite"
 scp /tmp/hall-migration.sqlite newserver:/tmp/
 
 # 新服务器：按"首次部署"流程完成 1-8 步
 # 新服务器：停止服务并恢复数据
 sudo systemctl stop lianzhong-hall
-cp /tmp/hall-migration.sqlite /opt/lianzhong-hall/data/hall.sqlite
-sudo chown ubuntu:ubuntu /opt/lianzhong-hall/data/hall.sqlite
+cp /tmp/hall-migration.sqlite /var/www/lianzhong-hall/data/hall.sqlite
+sudo chown ubuntu:ubuntu /var/www/lianzhong-hall/data/hall.sqlite
 sudo systemctl start lianzhong-hall
 
 # 更新 DNS 指向新服务器 IP
 ```
+
+## DNS 与 SSL 证书验证
+
+### DNS 解析检查
+
+```bash
+# 检查 A 记录是否正确指向服务器 IP
+dig yourdomain.com +short
+dig www.yourdomain.com +short
+
+# 应返回你的服务器 IP（如 43.160.228.187）
+
+# 检查 DNS 是否启用 Cloudflare 代理
+# 灰云（DNS only）: 返回真实服务器 IP
+# 橙云（CDN 代理）: 返回 Cloudflare IP（通常以 104、172、162 开头）
+```
+
+### SSL 证书检查
+
+```bash
+# 方式 1: 使用 openssl 检查证书
+echo | openssl s_client -connect yourdomain.com:443 -servername yourdomain.com 2>/dev/null | openssl x509 -noout -issuer -dates
+
+# 应显示：
+# - issuer: Let's Encrypt (中间证书名称可能为 R10、R11、YE2、E5 等)
+# - notBefore: 证书颁发日期
+# - notAfter: 证书过期日期（Let's Encrypt 证书有效期 90 天）
+
+# 方式 2: 使用 curl 验证 HTTPS 和反向代理
+curl -I https://yourdomain.com
+
+# 检查要点：
+# - HTTP/2 200（或其他正常状态码）
+# - via: 1.1 Caddy（或 server: Caddy）表明 Caddy 反向代理工作正常
+# - 无证书错误
+```
+
+### Cloudflare 设置验证
+
+**灰云模式（当前生产环境推荐）**:
+- DNS 解析返回真实服务器 IP
+- 证书颁发者为 Let's Encrypt
+- `curl -I` 响应头包含 `via: 1.1 Caddy`（或 `server: Caddy`），**不含** `cf-ray`
+
+**橙云模式（CDN 代理）**:
+- DNS 解析返回 Cloudflare IP
+- 证书颁发者为 Cloudflare 或 Let's Encrypt
+- `curl -I` 响应头包含 `cf-ray: ...`（Cloudflare 请求 ID）
+- ⚠️ 需确保 Cloudflare SSL/TLS 模式为 `Full (strict)`
+- ⚠️ 需验证 WebSocket `/ws` 路径可正常连接
 
 ## 健康检查与监控
 
@@ -472,8 +551,8 @@ htop
 ps aux | grep node
 
 # 查看数据库大小
-ls -lh /opt/lianzhong-hall/data/hall.sqlite
-du -sh /opt/lianzhong-hall/data/
+ls -lh /var/www/lianzhong-hall/data/hall.sqlite
+du -sh /var/www/lianzhong-hall/data/
 ```
 
 ## 安全检查清单
@@ -542,7 +621,7 @@ sudo journalctl -u lianzhong-hall -n 50
 # 常见问题：
 # - 端口 3088 被占用：sudo lsof -i :3088
 # - Node 版本过低：node -v 应为 24+
-# - 文件权限问题：sudo chown -R ubuntu:ubuntu /opt/lianzhong-hall
+# - 文件权限问题：sudo chown -R ubuntu:ubuntu /var/www/lianzhong-hall
 # - 数据库文件损坏：尝试恢复备份
 ```
 
@@ -559,7 +638,7 @@ sudo journalctl -u caddy -n 100
 # - 域名已被其他证书占用（速率限制）
 
 # 临时回退到 HTTP 模式：
-sudo cp /opt/lianzhong-hall/deploy/Caddyfile.http /etc/caddy/Caddyfile
+sudo cp /var/www/lianzhong-hall/deploy/Caddyfile.http /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
 
@@ -573,9 +652,29 @@ sudo systemctl reload caddy
 3. 停止服务后手动检查数据库完整性：
    ```bash
    sudo systemctl stop lianzhong-hall
-   sqlite3 /opt/lianzhong-hall/data/hall.sqlite "PRAGMA integrity_check;"
+   sqlite3 /var/www/lianzhong-hall/data/hall.sqlite "PRAGMA integrity_check;"
    sudo systemctl start lianzhong-hall
    ```
+
+### Vite 构建警告（可忽略）
+
+**症状**: 构建时显示警告：
+
+```
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+```
+
+**原因**: 
+- Vite 客户端构建忽略 `.env` 中的 `NODE_ENV`（使用 Vite 自己的模式机制）
+- 但后端（Node.js）在某些情况下会读取 `NODE_ENV`（如邮件模式默认值判断）
+- systemd 服务文件已通过 `Environment=NODE_ENV=production` 设置此变量，且 `.env` 文件会覆盖该默认值
+
+**解决方案**:
+- **保留或删除都可以**：`.env` 中的 `NODE_ENV=production` 是无害的
+  - 保留：确保环境变量明确设置，但会触发 Vite 警告
+  - 删除：依赖 systemd 的 `Environment=` 默认值，警告消失
+- 无论如何，systemd 都会保证生产环境 `NODE_ENV=production` 生效
+- Vite 客户端构建会自动使用正确的生产模式（`npm run build`）
 
 ## 性能优化建议
 
@@ -583,7 +682,7 @@ sudo systemctl reload caddy
    - 定期执行 `VACUUM` 收缩数据库：
      ```bash
      sudo systemctl stop lianzhong-hall
-     sqlite3 /opt/lianzhong-hall/data/hall.sqlite "VACUUM;"
+     sqlite3 /var/www/lianzhong-hall/data/hall.sqlite "VACUUM;"
      sudo systemctl start lianzhong-hall
      ```
    - 考虑定期归档旧聊天记录（保留最近 30 天）
@@ -598,7 +697,7 @@ sudo systemctl reload caddy
    - 考虑升级配置（4核4G）支持更多并发
 
 4. **CDN 加速**（可选）
-   - Cloudflare 橙色云代理（需确认 WebSocket 支持）
+   - Cloudflare 橙色云代理（需确认 WebSocket 支持，建议参考"域名与 CDN"章节）
    - 或将静态资源上传到 CDN，修改 Vite 配置
 
 ## 进一步参考

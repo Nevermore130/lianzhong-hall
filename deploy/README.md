@@ -53,7 +53,7 @@ sudo systemctl reload caddy
 
 首次安装脚本，执行:
 - 安装 Node.js 24+ 和 Caddy
-- 克隆仓库到指定目录（默认 `/opt/lianzhong-hall`）
+- 克隆仓库到指定目录（默认 `/opt/lianzhong-hall`，推荐生产路径 `/var/www/lianzhong-hall`）
 - 构建应用
 - 配置 systemd 服务
 - 设置每日数据库备份
@@ -85,12 +85,9 @@ INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 **生产环境使用方法**（zhongle.online 实际路径）:
 ```bash
 cd /var/www/lianzhong-hall
-bash deploy/release.sh
-```
-
-**检出特定版本**:
-```bash
-bash deploy/release.sh v1.2.3
+bash deploy/release.sh              # 更新到最新版本
+bash deploy/release.sh v1.2.3       # 更新到指定标签
+bash deploy/release.sh abc1234      # 回滚到指定 commit
 ```
 
 **自定义路径**（通常不需要，脚本会自动检测）:
@@ -104,6 +101,11 @@ INSTALL_DIR=/custom/path bash deploy/release.sh
 
 systemd 服务单元文件，定义应用的启动方式和环境变量。
 
+**配置说明**:
+- **环境变量优先级**: `.env` 文件（通过 `EnvironmentFile=` 加载）会覆盖服务文件中 `Environment=` 的默认值
+- **APP_ORIGIN 配置**: 必须在 `.env` 中配置；不要在此服务文件中设置，以保持单一配置来源，避免混淆
+- **安全默认值**: 服务文件仅提供安全的默认值（如 `PORT=3088`, `HOST=127.0.0.1`, `NODE_ENV=production`, `MAIL_MODE=disabled`）
+
 **使用方法**:
 ```bash
 sudo cp deploy/lianzhong-hall.service /etc/systemd/system/
@@ -112,6 +114,8 @@ sudo systemctl enable lianzhong-hall
 sudo systemctl start lianzhong-hall
 ```
 
+**路径自动调整**: `install.sh` 会根据 `INSTALL_DIR` 自动调整服务文件中的路径。
+
 ## 生产环境配置参考
 
 **当前生产环境（zhongle.online）使用配置**:
@@ -119,7 +123,9 @@ sudo systemctl start lianzhong-hall
 - 域名: `zhongle.online`, `www.zhongle.online`
 - Caddy 自动 HTTPS（Let's Encrypt）
 - 管理邮箱: `admin@zhongle.online`
-- DNS: 灰云模式（DNS only），未启用 CDN 代理
+- DNS: Cloudflare，灰云模式（DNS only，不启用 CDN 代理）
+  - 原因：橙云代理曾导致 522 错误和回源不稳定，切换灰云后问题解决
+  - 如需启用橙云，必须设置 Cloudflare SSL/TLS 为 `Full (strict)` 并验证 WebSocket
 
 ## 更多信息
 

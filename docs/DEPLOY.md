@@ -349,19 +349,19 @@ curl http://127.0.0.1:3088/api/health
 ⚠️ **重要**: 服务重启会断开所有在线玩家并清空内存中的房间，建议在低峰期进行。
 
 ```bash
-# 切换到项目目录
-cd /var/www/lianzhong-hall
-
 # 方式 1: 使用自动化脚本（推荐）
-# 更新到最新版本
-bash deploy/release.sh
+# 从安装目录运行 release.sh
+cd /var/www/lianzhong-hall
+bash deploy/release.sh              # 更新到最新版本
+bash deploy/release.sh v1.2.3       # 更新到指定标签
+bash deploy/release.sh main         # 切换到指定分支
+bash deploy/release.sh abc1234      # 回滚到指定 commit
 
-# 更新到指定版本/分支/commit
-bash deploy/release.sh v1.2.3
-bash deploy/release.sh main
-bash deploy/release.sh abc1234
+# 注意：当前 release.sh 脚本需要从实际安装目录运行
+# 它会在当前目录执行 git pull、npm ci、npm run build 和服务重启
 
 # 方式 2: 手动更新
+cd /var/www/lianzhong-hall
 git fetch origin
 git pull origin main  # 或你的生产分支
 npm ci
@@ -380,12 +380,13 @@ sudo journalctl -u lianzhong-hall -n 100
 ### 回滚版本
 
 ```bash
-cd /var/www/lianzhong-hall
-
 # 方式 1: 使用 release.sh 回滚到指定 commit（推荐）
+cd /var/www/lianzhong-hall
 bash deploy/release.sh <commit-sha>
 
 # 方式 2: 手动回滚
+cd /var/www/lianzhong-hall
+
 # 查看历史版本
 git log --oneline -10
 

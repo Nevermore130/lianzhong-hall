@@ -71,21 +71,28 @@ INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 ### release.sh
 
 更新已部署应用的脚本，执行:
-- 拉取最新代码（或指定的 git 引用）
+- 拉取最新代码（或检出指定 git ref）
 - 安装依赖
 - 重新构建
 - 重启服务
 - 健康检查
 
-**使用方法**:
-```bash
-cd /var/www/lianzhong-hall  # 或你的实际安装路径
-bash deploy/release.sh [git-ref]
+**特性**:
+- **路径自动检测**: 脚本自动从所在位置（deploy/ 的父目录）确定安装路径，无需编辑脚本
+- **环境变量覆盖**: 可通过 `INSTALL_DIR=...` 指定自定义路径
+- **Git 版本控制**: 可选指定 git ref（分支、标签、commit SHA）进行部署
 
-# 示例：
+**生产环境使用方法**（zhongle.online 实际路径）:
+```bash
+cd /var/www/lianzhong-hall
 bash deploy/release.sh              # 更新到最新版本
 bash deploy/release.sh v1.2.3       # 更新到指定标签
 bash deploy/release.sh abc1234      # 回滚到指定 commit
+```
+
+**自定义路径**（通常不需要，脚本会自动检测）:
+```bash
+INSTALL_DIR=/custom/path bash deploy/release.sh
 ```
 
 ⚠️ 重启会断开所有在线玩家并清空内存中的房间，建议在低峰期执行。

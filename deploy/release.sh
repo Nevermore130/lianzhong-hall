@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Zhongle Game Hall - Release/Update Script
-# Usage: sudo -u ubuntu bash release.sh [git-ref]
+# Usage: bash deploy/release.sh [git-ref]
 #
 # This script performs rolling updates:
 # - Pulls latest code (or checks out specific git ref)
@@ -13,10 +13,16 @@ set -euo pipefail
 # WARNING: Restart will disconnect all active players and clear in-memory rooms.
 # Plan updates during low-traffic periods.
 #
-# Example: sudo -u ubuntu bash release.sh
-# Example: sudo -u ubuntu bash release.sh v1.2.3
+# Example: cd /var/www/lianzhong-hall && bash deploy/release.sh
+# Example: bash deploy/release.sh v1.2.3
+# Example: INSTALL_DIR=/custom/path bash deploy/release.sh
 
-INSTALL_DIR="/opt/lianzhong-hall"
+# Auto-detect installation directory from script location (parent of deploy/)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Allow override via environment variable
+INSTALL_DIR="${INSTALL_DIR:-$DEFAULT_INSTALL_DIR}"
 GIT_REF="${1:-}"
 
 if [ ! -d "$INSTALL_DIR" ]; then

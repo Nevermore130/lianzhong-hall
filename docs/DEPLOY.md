@@ -46,6 +46,11 @@
 INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 ```
 
+**关于部署脚本路径处理**：
+- `install.sh`: 通过 `INSTALL_DIR` 环境变量指定安装路径（默认 `/opt/lianzhong-hall`）
+- `release.sh`: **自动检测路径**，从脚本所在的 `deploy/` 目录的父目录确定安装路径，无需修改脚本即可适配任何安装位置
+- 这意味着在 `/var/www/lianzhong-hall` 安装后，直接运行 `bash deploy/release.sh` 即可，脚本会自动工作在该路径下
+
 **注意**：
 - `deploy/Caddyfile.https` 和 `deploy/Caddyfile.http` 中的 `root *` 路径默认为 `/var/www/lianzhong-hall`
 - 使用其他路径时，需同步修改 Caddyfile 中的路径（`install.sh` 会自动调整 systemd 服务路径）
@@ -376,7 +381,10 @@ sudo systemctl status lianzhong-hall
 sudo journalctl -u lianzhong-hall -n 100
 ```
 
-**说明**: `deploy/release.sh` 会自动拉取代码、安装依赖、构建、重启服务并执行健康检查。
+**关于 release.sh 脚本**:
+- 脚本会自动从所在位置（deploy/ 的父目录）检测安装路径，适用于 `/var/www/lianzhong-hall`、`/opt/lianzhong-hall` 或任何自定义路径
+- 无需编辑脚本即可在不同路径下使用
+- 脚本会自动处理 git 更新、依赖安装、构建、服务重启和健康检查
 
 ### 回滚版本
 

@@ -34,10 +34,15 @@
 INSTALL_DIR=/var/www/lianzhong-hall sudo bash deploy/install.sh
 ```
 
+**关于部署脚本路径处理**：
+- `install.sh`: 通过 `INSTALL_DIR` 环境变量指定安装路径（默认 `/opt/lianzhong-hall`）
+- `release.sh`: **自动检测路径**，从脚本所在的 `deploy/` 目录的父目录确定安装路径，无需修改脚本即可适配任何安装位置
+- 这意味着在 `/var/www/lianzhong-hall` 安装后，直接运行 `bash deploy/release.sh` 即可，脚本会自动工作在该路径下
+
 **注意**：
 - `deploy/Caddyfile.https` 和 `deploy/Caddyfile.http` 中的 `root *` 路径默认为 `/var/www/lianzhong-hall`
 - 如使用其他路径，需同步修改 Caddyfile 和 systemd 服务配置中的路径
-- 本文档示例路径统一使用 `/opt/lianzhong-hall` 便于演示，实际部署时请替换为你的实际路径
+- 本文档示例路径为了便于演示可能混合使用 `/opt/lianzhong-hall` 和 `/var/www/lianzhong-hall`，实际部署时以你选择的路径为准
 
 ## 推荐部署环境
 
@@ -331,11 +336,12 @@ curl http://127.0.0.1:3088/api/health
 ⚠️ **重要**: 服务重启会断开所有在线玩家并清空内存中的房间，建议在低峰期进行。
 
 ```bash
-# 切换到项目目录
-cd /opt/lianzhong-hall
-
-# 方式 1: 使用自动化脚本（推荐）
+# 方式 1: 使用自动化脚本（推荐，路径自动检测）
+cd /var/www/lianzhong-hall  # 切换到你的实际安装路径
 bash deploy/release.sh
+
+# 检出特定版本（可选）
+bash deploy/release.sh v1.2.3
 
 # 方式 2: 手动更新
 git fetch origin
@@ -350,6 +356,11 @@ sudo systemctl status lianzhong-hall
 # 查看启动日志
 sudo journalctl -u lianzhong-hall -n 100
 ```
+
+**关于 release.sh 脚本**:
+- 脚本会自动从所在位置（deploy/ 的父目录）检测安装路径，适用于 `/var/www/lianzhong-hall`、`/opt/lianzhong-hall` 或任何自定义路径
+- 无需编辑脚本即可在不同路径下使用
+- 脚本会自动处理 git 更新、依赖安装、构建、服务重启和健康检查
 
 ### 回滚版本
 

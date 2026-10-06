@@ -176,12 +176,12 @@ MAIL_MODE=disabled
 | `SMTP_PASSWORD`         | SMTP | SMTP 密码                                                                                 | `your-app-password`             |
 
 **关键配置说明**:
-- **在 `.env` 中配置所有环境变量**，优先级高于 systemd 服务文件中的默认值
+- **在 `.env` 中配置所有环境变量**，`.env` 文件（通过 systemd 的 `EnvironmentFile=` 加载）会覆盖服务文件中 `Environment=` 设置的默认值
 - `APP_ORIGIN` **必须在 `.env` 中设置**，与浏览器实际访问地址的协议、域名/IP、端口完全一致
 - HTTPS 环境必须设置 `APP_ORIGIN=https://...`，此时会话 Cookie 自动添加 `Secure` 标志
 - HTTP 环境（如纯 IP 访问）必须设置 `APP_ORIGIN=http://...`，不会设置 `Secure`，WebSocket 才能正常工作
 - 生产环境默认 `MAIL_MODE=disabled`，未配置 SMTP 时绑定邮箱功能不可用
-- **重要**: 不要在 systemd 服务文件（`/etc/systemd/system/lianzhong-hall.service`）中设置 `APP_ORIGIN`，因为 systemd 的 `Environment=` 指令会覆盖 `.env` 文件中的值
+- **重要**: 不要在 systemd 服务文件（`/etc/systemd/system/lianzhong-hall.service`）中设置 `APP_ORIGIN`，统一在 `.env` 中配置以保持单一事实来源，避免混淆
 
 ### 6. 安装 Caddy
 
@@ -273,7 +273,8 @@ sudo nano /etc/systemd/system/lianzhong-hall.service
 
 # 关键说明：
 # - APP_ORIGIN 等环境变量应在 /var/www/lianzhong-hall/.env 中配置
-# - 不要在 systemd 服务文件中设置 APP_ORIGIN，会覆盖 .env 配置
+# - .env 文件（EnvironmentFile=）会覆盖服务文件中 Environment= 的默认值
+# - 不要在服务文件中设置 APP_ORIGIN，统一在 .env 配置以避免混淆
 # - 服务文件的 Environment= 仅提供安全的默认值（如 PORT、HOST、MAIL_MODE）
 
 # 重载 systemd 配置
@@ -350,15 +351,15 @@ curl http://127.0.0.1:3088/api/health
 
 ```bash
 # 方式 1: 使用自动化脚本（推荐）
-# 从安装目录运行 release.sh
+# release.sh 从脚本所在位置自动检测安装目录（deploy/ 的父目录）
 cd /var/www/lianzhong-hall
 bash deploy/release.sh              # 更新到最新版本
 bash deploy/release.sh v1.2.3       # 更新到指定标签
 bash deploy/release.sh main         # 切换到指定分支
 bash deploy/release.sh abc1234      # 回滚到指定 commit
 
-# 注意：当前 release.sh 脚本需要从实际安装目录运行
-# 它会在当前目录执行 git pull、npm ci、npm run build 和服务重启
+# 脚本会在检测到的代码库（deploy/release.sh 所在的仓库）中执行操作
+# 也可通过环境变量覆盖：INSTALL_DIR=/custom/path bash deploy/release.sh
 
 # 方式 2: 手动更新
 cd /var/www/lianzhong-hall
@@ -475,7 +476,7 @@ dig www.yourdomain.com +short
 echo | openssl s_client -connect yourdomain.com:443 -servername yourdomain.com 2>/dev/null | openssl x509 -noout -issuer -dates
 
 # 应显示：
-# - issuer: Let's Encrypt (R10 或 R11)
+# - issuer: Let's Encrypt (中间证书名称可能为 R10、R11、YE2、E5 等)
 # - notBefore: 证书颁发日期
 # - notAfter: 证书过期日期（Let's Encrypt 证书有效期 90 天）
 
@@ -484,7 +485,7 @@ curl -I https://yourdomain.com
 
 # 检查要点：
 # - HTTP/2 200（或其他正常状态码）
-# - server: Caddy（表明 Caddy 反向代理工作正常）
+# - via: 1.1 Caddy（或 server: Caddy）表明 Caddy 反向代理工作正常
 # - 无证书错误
 ```
 
@@ -493,7 +494,7 @@ curl -I https://yourdomain.com
 **灰云模式（当前生产环境推荐）**:
 - DNS 解析返回真实服务器 IP
 - 证书颁发者为 Let's Encrypt
-- `curl -I` 响应头包含 `server: Caddy`（**不含** `cf-ray`）
+- `curl -I` 响应头包含 `via: 1.1 Caddy`（或 `server: Caddy`），**不含** `cf-ray`
 
 **橙云模式（CDN 代理）**:
 - DNS 解析返回 Cloudflare IP
@@ -649,16 +650,23 @@ sudo systemctl reload caddy
 
 ### Vite 构建警告（可忽略）
 
-**症状**: 构建时显示类似 `"NODE_ENV" is declared in .env but is not used in code` 的警告。
+**症状**: 构建时显示警告：
+
+```
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+```
 
 **原因**: 
 - Vite 客户端构建忽略 `.env` 中的 `NODE_ENV`（使用 Vite 自己的模式机制）
-- 但后端（Node.js）仍然读取并使用 `.env` 中的 `NODE_ENV`
+- 但后端（Node.js）在某些情况下会读取 `NODE_ENV`（如邮件模式默认值判断）
+- systemd 服务文件已通过 `Environment=NODE_ENV=production` 设置此变量，且 `.env` 文件会覆盖该默认值
 
 **解决方案**:
-- **不需要删除** `.env` 中的 `NODE_ENV=production`，后端依赖此变量
-- 此警告是无害的，可安全忽略
-- Vite 客户端构建会自动使用正确的生产模式
+- **保留或删除都可以**：`.env` 中的 `NODE_ENV=production` 是无害的
+  - 保留：确保环境变量明确设置，但会触发 Vite 警告
+  - 删除：依赖 systemd 的 `Environment=` 默认值，警告消失
+- 无论如何，systemd 都会保证生产环境 `NODE_ENV=production` 生效
+- Vite 客户端构建会自动使用正确的生产模式（`npm run build`）
 
 ## 性能优化建议
 

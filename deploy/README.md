@@ -95,9 +95,9 @@ bash deploy/release.sh abc1234      # 回滚到指定 commit
 systemd 服务单元文件，定义应用的启动方式和环境变量。
 
 **配置说明**:
-- **环境变量优先级**: `.env` 文件（`EnvironmentFile=-`）优先于 systemd 服务文件的 `Environment=` 指令
-- **APP_ORIGIN 配置**: 必须在 `.env` 中配置，不要在此服务文件中设置，否则会覆盖 `.env` 的值
-- **安全默认值**: 服务文件仅提供安全的默认值（如 `PORT=3088`, `HOST=127.0.0.1`, `MAIL_MODE=disabled`）
+- **环境变量优先级**: `.env` 文件（通过 `EnvironmentFile=` 加载）会覆盖服务文件中 `Environment=` 的默认值
+- **APP_ORIGIN 配置**: 必须在 `.env` 中配置；不要在此服务文件中设置，以保持单一配置来源，避免混淆
+- **安全默认值**: 服务文件仅提供安全的默认值（如 `PORT=3088`, `HOST=127.0.0.1`, `NODE_ENV=production`, `MAIL_MODE=disabled`）
 
 **使用方法**:
 ```bash

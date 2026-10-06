@@ -11,7 +11,7 @@ WorkingDirectory=/opt/lianzhong-hall
 # Install script adjusts path when INSTALL_DIR is customized
 EnvironmentFile=-/opt/lianzhong-hall/.env
 
-# Safe fallback defaults (EnvironmentFile values take precedence)
+# Safe fallback defaults (values from EnvironmentFile= override these)
 Environment="NODE_ENV=production"
 Environment="PORT=3088"
 Environment="HOST=127.0.0.1"
@@ -21,7 +21,7 @@ Environment="MAIL_MODE=disabled"
 # Configure APP_ORIGIN in .env (required for production):
 #   - HTTPS: APP_ORIGIN=https://yourdomain.com
 #   - HTTP:  APP_ORIGIN=http://YOUR.SERVER.IP
-# Do NOT set APP_ORIGIN= here; systemd Environment= overrides EnvironmentFile=
+# Do NOT set APP_ORIGIN= here to maintain a single source of truth in .env
 #
 # For SMTP email, set in .env:
 #   MAIL_MODE=smtp
